@@ -2,7 +2,7 @@ export async function GET(request) {
   const jid = new URL(request.url).searchParams.get('jid')
   try {
     const res = await fetch(
-      `${process.env.EVOLUTION_URL}/message/findMessages/${process.env.EVOLUTION_INSTANCE}`,
+      `${process.env.EVOLUTION_URL}/chat/findMessages/${process.env.EVOLUTION_INSTANCE}`,
       {
         method: 'POST',
         headers: { apikey: process.env.EVOLUTION_KEY, 'Content-Type': 'application/json' },
