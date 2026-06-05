@@ -56,7 +56,7 @@ function PepinoMark({ size = 28 }) {
 
 function Avatar({ name, size = 40 }) {
   const letter = (name || '?')[0].toUpperCase()
-  const colors = ['#16301A', '#1a2e1a', '#0f2010', '#243026']
+  const colors = ['#163018', '#1a2e1a', '#0f2010', '#243026']
   const color = colors[letter.charCodeAt(0) % colors.length]
   return (
     <div style={{
@@ -304,6 +304,12 @@ export default function Home() {
     setView('chats')
   }
 
+  const handleLogout = async () => {
+    await fetch('/api/logout', { method: 'DELETE' })
+    setStatus({ connected: false, state: 'closed' })
+    setChats([])
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       {/* Nav */}
@@ -329,6 +335,11 @@ export default function Home() {
           <button onClick={() => setShowQR(true)} style={{ background: status.connected ? C.greenDim : C.green, border: `1px solid ${status.connected ? C.border2 : 'transparent'}`, color: status.connected ? C.green : '#0B0E0C', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600 }}>
             {status.connected ? 'Ver QR' : 'Conectar'}
           </button>
+          {status.connected && (
+            <button onClick={handleLogout} style={{ background: 'none', border: '1px solid #4a2020', color: '#ff6b6b', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600 }}>
+              Cerrar sesión
+            </button>
+          )}
         </div>
       </header>
 
