@@ -1,24 +1,22 @@
+import '@fontsource-variable/funnel-sans'
+import '@fontsource-variable/jetbrains-mono'
+
 export const metadata = {
-  title: 'Pepino AI — Chats',
-  description: 'Panel de chats de Pepino AI',
+  title: 'Pepino AI',
+  description: 'Tu agente de atención al cliente',
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-      </head>
       <body style={{
-        margin: 0, padding: 0,
+        margin: 0,
+        padding: 0,
         background: '#0B0E0C',
         color: '#F4F7F2',
-        fontFamily: '"Funnel Sans", system-ui, sans-serif',
+        fontFamily: '"Funnel Sans Variable", "Funnel Sans", Inter, system-ui, sans-serif',
         WebkitFontSmoothing: 'antialiased',
-        height: '100vh',
-        overflow: 'hidden',
+        MozOsxFontSmoothing: 'grayscale',
       }}>
         {children}
       </body>
