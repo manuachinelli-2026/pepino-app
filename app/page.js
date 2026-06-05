@@ -178,9 +178,13 @@ export default function Home() {
     return () => clearInterval(t)
   }, [selectedChat])
 
-  const getChatName = (c) =>
-    c.pushName || c.lastMessage?.pushName ||
-    c.remoteJid?.replace('@s.whatsapp.net','').replace('@g.us',' (grupo)') || 'Desconocido'
+  const getChatName = (c) => {
+    if (c.pushName) return c.pushName
+    if (c.lastMessage?.pushName) return c.lastMessage.pushName
+    const jid = c.remoteJid || ''
+    if (jid.includes('@g.us')) return jid.replace('@g.us', '') + ' (grupo)'
+    return jid.replace('@s.whatsapp.net','').replace('@lid','') || 'Desconocido'
+  }
 
   const filteredChats = chats.filter(c => {
     const name = getChatName(c)
