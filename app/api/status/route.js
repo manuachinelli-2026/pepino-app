@@ -6,11 +6,11 @@ export async function GET() {
     })
     const data = await res.json()
     const inst = Array.isArray(data)
-      ? data.find(i => i.instance?.instanceName === process.env.EVOLUTION_INSTANCE)
+      ? data.find(i => i.name === process.env.EVOLUTION_INSTANCE)
       : null
     return Response.json({
-      connected: inst?.instance?.state === 'open',
-      state: inst?.instance?.state || 'unknown',
+      connected: inst?.connectionStatus === 'open',
+      state: inst?.connectionStatus || 'unknown',
     })
   } catch {
     return Response.json({ connected: false, state: 'error' })
