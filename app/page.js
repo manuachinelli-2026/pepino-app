@@ -168,7 +168,7 @@ export default function Home() {
   useEffect(() => {
     if (!selectedChat) return
     const load = async () => {
-      const res = await fetch(`/api/messages?jid=${encodeURIComponent(selectedChat.id)}`)
+      const res = await fetch(`/api/messages?jid=${encodeURIComponent(selectedChat.remoteJid)}`)
       const data = await res.json()
       setMessages(data)
       setTimeout(() => msgsEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
@@ -178,8 +178,12 @@ export default function Home() {
     return () => clearInterval(t)
   }, [selectedChat])
 
+  const getChatName = (c) =>
+    c.pushName || c.lastMessage?.pushName ||
+    c.remoteJid?.replace('@s.whatsapp.net','').replace('@g.us',' (grupo)') || 'Desconocido'
+
   const filteredChats = chats.filter(c => {
-    const name = c.name || c.id || ''
+    const name = getChatName(c)
     return name.toLowerCase().includes(search.toLowerCase())
   })
 
@@ -246,9 +250,9 @@ export default function Home() {
                 No hay conversaciones todavía.
               </div>
             ) : filteredChats.map(chat => {
-              const isSelected = selectedChat?.id === chat.id
+              const isSelected = selectedChat?.remoteJid === chat.remoteJid
               const lastMsg = getMsgText(chat.lastMessage)
-              const name = chat.name || chat.id?.replace('@s.whatsapp.net', '').replace('@g.us', ' (grupo)') || 'Desconocido'
+              const name = getChatName(chat)
               return (
                 <div key={chat.id} onClick={() => setSelectedChat(chat)} style={{
                   display: 'flex', alignItems: 'center', gap: 12,
@@ -296,13 +300,13 @@ export default function Home() {
                 padding: '12px 20px', borderBottom: `1px solid ${C.border}`,
                 display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0, background: C.panel,
               }}>
-                <Avatar name={selectedChat.name || selectedChat.id} size={36} />
+                <Avatar name={getChatName(selectedChat)} size={36} />
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 15 }}>
-                    {selectedChat.name || selectedChat.id?.replace('@s.whatsapp.net', '')}
+                    {getChatName(selectedChat)}
                   </div>
                   <div style={{ fontFamily: C.mono, fontSize: 10, color: C.text3 }}>
-                    {selectedChat.id?.replace('@s.whatsapp.net', '').replace('@g.us', '')}
+                    {selectedChat.remoteJid?.replace('@s.whatsapp.net','').replace('@g.us','')}
                   </div>
                 </div>
               </div>
