@@ -147,7 +147,7 @@ export default function AgendaPage() {
 
   const inputStyle = {
     background: 'var(--bg)', border: '1px solid var(--border-2)', borderRadius: 8,
-    padding: '8px 12px', color: 'var(--text-1)', fontFamily: '"Funnel Sans",system-ui,sans-serif',
+    padding: '8px 12px', color: 'var(--text-1)', fontFamily: 'var(--sans)',
     fontSize: 14, outline: 'none', flex: 1,
   }
 

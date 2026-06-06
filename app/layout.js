@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
       <body style={{
         margin: 0,
         padding: 0,
-        fontFamily: '"Funnel Sans Variable", "Funnel Sans", system-ui, sans-serif',
+        fontFamily: 'var(--sans)',
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
       }}>

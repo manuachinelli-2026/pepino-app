@@ -56,7 +56,7 @@ function Modal({ onClose, onSuccess }) {
 
   const inputStyle = {
     background: 'var(--bg)', border: '1px solid var(--border-2)', borderRadius: 9,
-    padding: '10px 13px', color: 'var(--text-1)', fontFamily: '"Funnel Sans",system-ui,sans-serif',
+    padding: '10px 13px', color: 'var(--text-1)', fontFamily: 'var(--sans)',
     fontSize: 14, outline: 'none', width: '100%', boxSizing: 'border-box',
   }
   const labelStyle = {

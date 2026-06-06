@@ -1,5 +1,17 @@
 /* Pepino AI — Global Styles */
 
+/*
+ * ── TIPOGRAFÍAS ──────────────────────────────────────────────────────────────
+ * Siempre usar CSS vars, NUNCA hardcodear font-family strings.
+ *
+ *   var(--sans)  →  Funnel Sans Variable   — cuerpo, UI, botones, títulos
+ *   var(--mono)  →  JetBrains Mono Variable — labels en caps, timestamps,
+ *                                             números, códigos, badges
+ *
+ * En JSX usar fontFamily: 'inherit' cuando el padre ya tiene la fuente.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
 /* ── Dark (default) ── */
 :root {
   --bg:           #0B0E0C;

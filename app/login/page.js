@@ -13,7 +13,7 @@ const C = {
   text3: '#7E8C7C',
   border: '#243026',
   border2: '#324034',
-  mono: '"JetBrains Mono", monospace',
+  mono: 'var(--mono)',
 }
 
 function PepinoMark({ size = 40 }) {
@@ -118,7 +118,7 @@ export default function LoginPage() {
                 borderRadius: 10,
                 padding: '12px 16px',
                 color: C.text1,
-                fontFamily: '"Funnel Sans", system-ui, sans-serif',
+                fontFamily: 'var(--sans)',
                 fontSize: 15,
                 outline: 'none',
                 transition: 'border-color 0.15s',
@@ -145,7 +145,7 @@ export default function LoginPage() {
                 borderRadius: 10,
                 padding: '12px 16px',
                 color: C.text1,
-                fontFamily: '"Funnel Sans", system-ui, sans-serif',
+                fontFamily: 'var(--sans)',
                 fontSize: 15,
                 outline: 'none',
                 transition: 'border-color 0.15s',
@@ -180,7 +180,7 @@ export default function LoginPage() {
               border: 'none',
               borderRadius: 10,
               padding: '14px',
-              fontFamily: '"Funnel Sans", system-ui, sans-serif',
+              fontFamily: 'var(--sans)',
               fontSize: 15,
               fontWeight: 700,
               cursor: loading ? 'not-allowed' : 'pointer',
