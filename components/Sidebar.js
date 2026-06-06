@@ -109,14 +109,14 @@ export default function Sidebar() {
   const router    = useRouter()
   const [user, setUser]         = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [theme, setTheme]       = useState('dark')
+  const [theme, setTheme]       = useState('light')
   const menuRef = useRef(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
     })
-    const saved = localStorage.getItem('pepino-theme') || 'dark'
+    const saved = localStorage.getItem('pepino-theme') || 'light'
     setTheme(saved)
   }, [])
 
