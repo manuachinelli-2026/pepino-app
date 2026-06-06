@@ -1,0 +1,42 @@
+/* Pepino AI — Global Styles */
+
+:root {
+  --bg:           #0B0E0C;
+  --panel:        #11150F;
+  --elevated:     #161B12;
+  --green:        #A0FF79;
+  --green-dim:    rgba(160, 255, 121, 0.09);
+  --green-border: rgba(160, 255, 121, 0.18);
+  --text-1:       #F4F7F2;
+  --text-2:       #B6C4B2;
+  --text-3:       #7E8C7C;
+  --border:       #243026;
+  --border-2:     #324034;
+  --sans:         "Funnel Sans Variable", "Funnel Sans", system-ui, sans-serif;
+  --mono:         "JetBrains Mono Variable", "JetBrains Mono", monospace;
+  --ease:         cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur:          160ms;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(160, 255, 121, 0.2);
+  color: #F4F7F2;
+}
+
+::-webkit-scrollbar       { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #243026; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #324034; }
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; }

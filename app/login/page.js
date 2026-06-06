@@ -59,7 +59,19 @@ export default function LoginPage() {
       minHeight: '100vh', background: C.bg,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '24px',
+      position: 'relative',
+      overflow: 'hidden',
     }}>
+      {/* Glow verde — igual al manual de marca */}
+      <div style={{
+        position: 'absolute',
+        width: 600, height: 600,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(160,255,121,0.11) 0%, transparent 65%)',
+        top: '50%', left: '50%',
+        transform: 'translate(-50%, -50%)',
+        pointerEvents: 'none',
+      }} />
       <div style={{
         width: '100%', maxWidth: 400,
         background: C.panel,
@@ -67,7 +79,13 @@ export default function LoginPage() {
         borderRadius: 24,
         padding: '48px 40px',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 32,
+        position: 'relative', overflow: 'hidden',
       }}>
+        {/* Línea verde top */}
+        <div style={{
+          position: 'absolute', top: 0, left: '20%', right: '20%', height: 1,
+          background: 'linear-gradient(90deg, transparent, #A0FF79, transparent)',
+        }} />
 
         {/* Logo */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>

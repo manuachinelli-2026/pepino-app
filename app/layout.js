@@ -1,9 +1,10 @@
 import '@fontsource-variable/funnel-sans'
 import '@fontsource-variable/jetbrains-mono'
+import './globals.css'
 
 export const metadata = {
-  title: 'Pepino AI',
-  description: 'Tu agente de atención al cliente',
+  title: 'Pepino AI — Panel de agentes',
+  description: 'Panel de gestión de agentes IA para tu negocio',
 }
 
 export default function RootLayout({ children }) {
@@ -14,7 +15,7 @@ export default function RootLayout({ children }) {
         padding: 0,
         background: '#0B0E0C',
         color: '#F4F7F2',
-        fontFamily: '"Funnel Sans Variable", "Funnel Sans", Inter, system-ui, sans-serif',
+        fontFamily: '"Funnel Sans Variable", "Funnel Sans", system-ui, sans-serif',
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
       }}>
