@@ -7,20 +7,6 @@ import Sidebar from '../../components/Sidebar'
 
 const AUTH_REDIRECT = '/login'
 
-const C = {
-  bg: '#0B0E0C',
-  panel: '#11150F',
-  elevated: '#161B12',
-  green: '#A0FF79',
-  text1: '#F4F7F2',
-  text2: '#B6C4B2',
-  text3: '#7E8C7C',
-  border: '#243026',
-  border2: '#324034',
-  mono: '"JetBrains Mono Variable", "JetBrains Mono", monospace',
-  sans: '"Funnel Sans Variable", "Funnel Sans", Inter, system-ui, sans-serif',
-}
-
 const METRICS = [
   {
     label: 'Conversaciones',
@@ -179,15 +165,15 @@ function Icon({ name, color, size = 18 }) {
 
 function MetricCard({ label, value, change, icon, iconBg, iconBorder, iconColor }) {
   return (
-    <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: '24px 24px 20px' }}>
+    <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 16, padding: '24px 24px 20px' }}>
       <div style={{ width: 40, height: 40, background: iconBg, border: `1px solid ${iconBorder}`, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
         <Icon name={icon} color={iconColor} size={18} />
       </div>
-      <div style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.text2, marginBottom: 10 }}>{label}</div>
-      <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.04em', color: C.text1, lineHeight: 1, marginBottom: 12 }}>{value}</div>
+      <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-2)', marginBottom: 10 }}>{label}</div>
+      <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.04em', color: 'var(--text-1)', lineHeight: 1, marginBottom: 12 }}>{value}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontFamily: C.mono, fontSize: 11, fontWeight: 700, color: iconColor }}>{change}</span>
-        <span style={{ fontSize: 12, color: C.text3 }}>vs. mes anterior</span>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 700, color: iconColor }}>{change}</span>
+        <span style={{ fontSize: 12, color: 'var(--text-3)' }}>vs. mes anterior</span>
       </div>
     </div>
   )
@@ -199,18 +185,18 @@ function OppRow({ icon, iconBg, iconBorder, iconColor, title, desc, isLast }) {
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 0', borderBottom: isLast ? 'none' : `1px solid ${C.border}`, transition: 'opacity 0.12s', opacity: hover ? 0.85 : 1 }}>
+      style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 0', borderBottom: isLast ? 'none' : '1px solid var(--border)', transition: 'opacity 0.12s', opacity: hover ? 0.85 : 1 }}>
       <div style={{ width: 44, height: 44, borderRadius: 12, background: iconBg, border: `1px solid ${iconBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <Icon name={icon} color={iconColor} size={18} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 700, fontSize: 13, color: C.text1, marginBottom: 3, letterSpacing: '-0.01em' }}>{title}</div>
-        <div style={{ fontSize: 12, color: C.text3, lineHeight: 1.45 }}>{desc}</div>
+        <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-1)', marginBottom: 3, letterSpacing: '-0.01em' }}>{title}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.45 }}>{desc}</div>
       </div>
-      <button style={{ background: 'none', border: `1px solid ${C.border2}`, borderRadius: 8, padding: '5px 13px', color: C.text2, fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
+      <button style={{ background: 'none', border: '1px solid var(--border-2)', borderRadius: 8, padding: '5px 13px', color: 'var(--text-2)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
         Resolver
       </button>
-      <Icon name="chevron" color={C.text3} size={14} />
+      <Icon name="chevron" color="var(--text-3)" size={14} />
     </div>
   )
 }
@@ -230,8 +216,8 @@ export default function Dashboard() {
   }, [router])
 
   if (!authChecked) return (
-    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg }}>
-      <div style={{ fontFamily: C.mono, fontSize: 11, color: C.text3, letterSpacing: '0.15em' }}>Cargando...</div>
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+      <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.15em' }}>Cargando...</div>
     </div>
   )
 
@@ -242,20 +228,20 @@ export default function Dashboard() {
     || 'equipo'
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: C.bg, fontFamily: C.sans }}>
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', fontFamily: 'var(--sans)' }}>
       <Sidebar />
       <main style={{ flex: 1, overflowY: 'auto' }}>
         <div style={{ padding: '36px 40px 48px', maxWidth: 1240 }}>
 
           {/* ──── GREETING ──── */}
           <div style={{ marginBottom: 32 }}>
-            <div style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.text3, marginBottom: 10 }}>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 10 }}>
               Panel principal
             </div>
-            <h1 style={{ margin: '0 0 8px', fontSize: 34, fontWeight: 800, letterSpacing: '-0.035em', color: C.text1, lineHeight: 1.1 }}>
+            <h1 style={{ margin: '0 0 8px', fontSize: 34, fontWeight: 800, letterSpacing: '-0.035em', color: 'var(--text-1)', lineHeight: 1.1 }}>
               ¡Hola, {firstName}! 👋
             </h1>
-            <p style={{ margin: 0, fontSize: 14, color: C.text3 }}>{todayCap}</p>
+            <p style={{ margin: 0, fontSize: 14, color: 'var(--text-3)' }}>{todayCap}</p>
           </div>
 
           {/* ──── METRICS ──── */}
@@ -267,10 +253,10 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16, marginBottom: 24 }}>
 
             {/* Opportunities */}
-            <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: '24px 24px 10px' }}>
+            <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 16, padding: '24px 24px 10px' }}>
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.text3, marginBottom: 6 }}>Accionables</div>
-                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: C.text1 }}>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 6 }}>Accionables</div>
+                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-1)' }}>
                   Oportunidades para tu negocio
                 </h2>
               </div>
@@ -280,17 +266,16 @@ export default function Dashboard() {
             </div>
 
             {/* Donut chart */}
-            <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: 24 }}>
+            <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 16, padding: 24 }}>
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.text3, marginBottom: 6 }}>Distribución</div>
-                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: C.text1 }}>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 6 }}>Distribución</div>
+                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-1)' }}>
                   Consultas por tipo
                 </h2>
               </div>
 
               {mounted ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                  {/* Chart */}
                   <div style={{ position: 'relative', flexShrink: 0 }}>
                     <PieChart width={176} height={176}>
                       <Pie
@@ -308,52 +293,51 @@ export default function Dashboard() {
                         {DONUT.map((e, i) => <Cell key={i} fill={e.color} stroke="none" />)}
                       </Pie>
                     </PieChart>
-                    {/* Center label */}
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
-                      <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.05em', color: C.text1, lineHeight: 1 }}>42</div>
-                      <div style={{ fontFamily: C.mono, fontSize: 9, color: C.text3, letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>Total</div>
+                      <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.05em', color: 'var(--text-1)', lineHeight: 1 }}>42</div>
+                      <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--text-3)', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>Total</div>
                     </div>
                   </div>
 
-                  {/* Legend */}
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 11 }}>
                     {DONUT.map(d => (
                       <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                         <div style={{ width: 8, height: 8, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
-                        <span style={{ fontSize: 13, color: C.text2, flex: 1 }}>{d.name}</span>
-                        <span style={{ fontFamily: C.mono, fontSize: 11, fontWeight: 600, color: C.text3 }}>{d.value}%</span>
+                        <span style={{ fontSize: 13, color: 'var(--text-2)', flex: 1 }}>{d.name}</span>
+                        <span style={{ fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 600, color: 'var(--text-3)' }}>{d.value}%</span>
                       </div>
                     ))}
                   </div>
                 </div>
               ) : (
                 <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontFamily: C.mono, fontSize: 10, color: C.text3, letterSpacing: '0.12em' }}>Cargando...</span>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--text-3)', letterSpacing: '0.12em' }}>Cargando...</span>
                 </div>
               )}
             </div>
           </div>
 
           {/* ──── BOTTOM BANNER ──── */}
-          <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderLeft: '4px solid #A0FF79', borderRadius: 16, padding: '20px 28px 20px 24px', display: 'flex', alignItems: 'center', gap: 18 }}>
-            <div style={{ width: 46, height: 46, borderRadius: 13, background: 'rgba(160,255,121,0.08)', border: '1px solid rgba(160,255,121,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderLeft: '4px solid var(--green)', borderRadius: 16, padding: '20px 28px 20px 24px', display: 'flex', alignItems: 'center', gap: 18 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 13, background: 'var(--green-dim)', border: '1px solid var(--green-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 17V3" stroke="#A0FF79" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M4 9l6-6 6 6" stroke="#A0FF79" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M10 17V3" stroke="var(--green)" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M4 9l6-6 6 6" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, letterSpacing: '-0.01em', color: C.text1, marginBottom: 4 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, letterSpacing: '-0.01em', color: 'var(--text-1)', marginBottom: 4 }}>
                 ¡Buen trabajo esta semana!
               </div>
-              <div style={{ fontSize: 13, color: C.text2, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
                 Tu agente IA resolvió el{' '}
-                <strong style={{ color: C.green, fontWeight: 700 }}>91%</strong>
+                <strong style={{ color: 'var(--green)', fontWeight: 700 }}>91%</strong>
                 {' '}de las consultas sin intervención. Seguís mejorando cada semana.
               </div>
             </div>
-            <button style={{ background: 'none', border: '1px solid rgba(160,255,121,0.4)', borderRadius: 10, padding: '9px 20px', color: C.green, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap', transition: 'background 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(160,255,121,0.06)'}
+            <button
+              style={{ background: 'none', border: '1px solid var(--green-border)', borderRadius: 10, padding: '9px 20px', color: 'var(--green)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap', transition: 'background 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--green-dim)'}
               onMouseLeave={e => e.currentTarget.style.background = 'none'}>
               Ver más insights
             </button>
