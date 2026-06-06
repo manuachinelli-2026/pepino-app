@@ -12,36 +12,28 @@ const METRICS = [
     label: 'Conversaciones',
     value: '42',
     change: '+18%',
-    icon: 'chat',
-    iconBg: 'rgba(160,255,121,0.1)',
-    iconBorder: 'rgba(160,255,121,0.15)',
+    iconFile: '/icons/conversaciones.svg',
     iconColor: '#A0FF79',
   },
   {
     label: 'Turnos agendados',
     value: '18',
     change: '+12%',
-    icon: 'calendar',
-    iconBg: 'rgba(167,139,250,0.1)',
-    iconBorder: 'rgba(167,139,250,0.15)',
+    iconFile: '/icons/turnos-agendados.svg',
     iconColor: '#A78BFA',
   },
   {
     label: 'Clientes nuevos',
     value: '8',
     change: '+33%',
-    icon: 'person',
-    iconBg: 'rgba(96,165,250,0.1)',
-    iconBorder: 'rgba(96,165,250,0.15)',
+    iconFile: '/icons/clientes-nuevos.svg',
     iconColor: '#60A5FA',
   },
   {
     label: 'Tasa de conversión',
     value: '42%',
     change: '+6%',
-    icon: 'arrowup',
-    iconBg: 'rgba(251,146,60,0.1)',
-    iconBorder: 'rgba(251,146,60,0.15)',
+    iconFile: '/icons/tasa-conversion.svg',
     iconColor: '#FB923C',
   },
 ]
@@ -163,12 +155,16 @@ function Icon({ name, color, size = 18 }) {
   )
 }
 
-function MetricCard({ label, value, change, icon, iconBg, iconBorder, iconColor }) {
+function MetricCard({ label, value, change, iconFile, icon, iconBg, iconBorder, iconColor }) {
   return (
     <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 16, padding: '24px 24px 20px' }}>
-      <div style={{ width: 40, height: 40, background: iconBg, border: `1px solid ${iconBorder}`, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-        <Icon name={icon} color={iconColor} size={18} />
-      </div>
+      {iconFile ? (
+        <img src={iconFile} width={44} height={44} alt="" style={{ borderRadius: 12, marginBottom: 20, display: 'block' }} />
+      ) : (
+        <div style={{ width: 40, height: 40, background: iconBg, border: `1px solid ${iconBorder}`, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+          <Icon name={icon} color={iconColor} size={18} />
+        </div>
+      )}
       <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-2)', marginBottom: 10 }}>{label}</div>
       <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.04em', color: 'var(--text-1)', lineHeight: 1, marginBottom: 12 }}>{value}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
