@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 const NAV = [
   { label: 'Dashboard',      href: '/dashboard',     icon: 'grid'     },
   { label: 'Conversaciones', href: '/conversaciones', icon: 'chat'     },
-  { label: 'Turnos',         href: '/turnos',         icon: 'calendar' },
+  { label: 'Reservas',       href: '/turnos',         icon: 'calendar' },
   { label: 'Agenda',         href: '/agenda',         icon: 'clock'    },
   { label: 'Mis Agentes',    href: '/agentes',        icon: 'bot'      },
 ]
