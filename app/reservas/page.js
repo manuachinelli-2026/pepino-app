@@ -5,10 +5,10 @@ import { supabase } from '../../lib/supabase'
 import Sidebar from '../../components/Sidebar'
 
 // ── Calendar constants ────────────────────────────────────────────────────────
-const START_HOUR = 7
-const END_HOUR   = 21
-const HOUR_H     = 60   // px per hour
-const TOTAL_H    = END_HOUR - START_HOUR
+const START_HOUR = 0
+const END_HOUR   = 24
+const HOUR_H     = 56   // px per hour
+const TOTAL_H    = END_HOUR - START_HOUR  // 24h
 const GRID_H     = TOTAL_H * HOUR_H
 
 const DAYS_ES   = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
@@ -49,10 +49,10 @@ function nowTop() {
 }
 
 function fmtHour(h) {
-  if (h === 0 || h === 24) return ''
-  const ampm = h < 12 ? 'am' : 'pm'
-  const disp = h > 12 ? h - 12 : h
-  return `${disp} ${ampm}`
+  if (h === 24) return ''
+  if (h === 0)  return '12 am'
+  if (h === 12) return '12 pm'
+  return h < 12 ? `${h} am` : `${h - 12} pm`
 }
 
 // ── New-reservation modal ─────────────────────────────────────────────────────
