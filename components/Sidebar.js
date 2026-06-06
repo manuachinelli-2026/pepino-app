@@ -9,13 +9,7 @@ const NAV = [
   { label: 'Conversaciones', href: '/conversaciones', icon: 'chat'     },
   { label: 'Turnos',         href: '/turnos',         icon: 'calendar' },
   { label: 'Agenda',         href: '/agenda',         icon: 'clock'    },
-]
-
-const NAV_SOON = [
-  { label: 'Mi Agente',     icon: 'bot'      },
-  { label: 'Reseñas',       icon: 'star'     },
-  { label: 'Integraciones', icon: 'plug'     },
-  { label: 'Configuración', icon: 'gear'     },
+  { label: 'Mis Agentes',    href: '/agentes',        icon: 'bot'      },
 ]
 
 function NavIcon({ name, size = 14 }) {
@@ -164,43 +158,6 @@ export default function Sidebar() {
           )
         })}
 
-        <div style={{ margin: '16px 2px 0', borderTop: '1px solid #243026' }} />
-
-        <SectionLabel>Próximamente</SectionLabel>
-
-        {NAV_SOON.map(item => (
-          <div key={item.label} style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '6px 10px',
-            borderRadius: 7,
-            borderLeft: '2px solid transparent',
-            color: '#7E8C7C',
-            fontSize: 13,
-            fontWeight: 400,
-            opacity: 0.6,
-            cursor: 'default',
-            marginBottom: 1,
-            justifyContent: 'space-between',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <NavIcon name={item.icon} />
-              {item.label}
-            </div>
-            <span style={{
-              fontFamily: '"JetBrains Mono Variable","JetBrains Mono",monospace',
-              fontSize: 8,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: '#324034',
-              background: '#161B12',
-              border: '1px solid #243026',
-              padding: '2px 5px',
-              borderRadius: 4,
-            }}>Pronto</span>
-          </div>
-        ))}
       </nav>
 
       {/* User */}
