@@ -4,14 +4,6 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 import Sidebar from '../../components/Sidebar'
 
-const C = {
-  bg: '#0B0E0C', panel: '#11150F', elevated: '#161B12',
-  green: '#A0FF79', greenDim: 'rgba(160,255,121,0.10)',
-  text1: '#F4F7F2', text2: '#B6C4B2', text3: '#7E8C7C',
-  border: '#243026', border2: '#324034',
-  mono: '"JetBrains Mono", monospace',
-}
-
 const AUTH_REDIRECT = '/login'
 
 const DAYS = [
@@ -35,13 +27,13 @@ function Toggle({ checked, onChange }) {
   return (
     <div onClick={() => onChange(!checked)} style={{
       width: 38, height: 22, borderRadius: 11,
-      background: checked ? 'rgba(160,255,121,0.18)' : C.elevated,
-      border: `1px solid ${checked ? 'rgba(160,255,121,0.35)' : C.border2}`,
+      background: checked ? 'rgba(160,255,121,0.18)' : 'var(--elevated)',
+      border: `1px solid ${checked ? 'rgba(160,255,121,0.35)' : 'var(--border-2)'}`,
       cursor: 'pointer', position: 'relative', transition: 'all 0.2s', flexShrink: 0,
     }}>
       <div style={{
         width: 16, height: 16, borderRadius: '50%',
-        background: checked ? C.green : C.text3,
+        background: checked ? 'var(--green)' : 'var(--text-3)',
         position: 'absolute', top: 2,
         left: checked ? 19 : 2,
         transition: 'all 0.2s', boxShadow: checked ? '0 0 6px rgba(160,255,121,0.4)' : 'none',
@@ -55,8 +47,8 @@ function Toast({ msg, type, onDone }) {
   const isOk = type === 'success'
   return (
     <div style={{ position: 'fixed', bottom: 28, right: 28, zIndex: 200, background: isOk ? 'rgba(160,255,121,0.12)' : 'rgba(255,80,80,0.10)', border: `1px solid ${isOk ? 'rgba(160,255,121,0.3)' : 'rgba(255,80,80,0.25)'}`, borderRadius: 12, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10, backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
-      <span style={{ color: isOk ? C.green : '#ff6b6b', fontSize: 16 }}>{isOk ? '✓' : '✕'}</span>
-      <span style={{ color: C.text1, fontSize: 13, fontWeight: 600 }}>{msg}</span>
+      <span style={{ color: isOk ? 'var(--green)' : '#ff6b6b', fontSize: 16 }}>{isOk ? '✓' : '✕'}</span>
+      <span style={{ color: 'var(--text-1)', fontSize: 13, fontWeight: 600 }}>{msg}</span>
     </div>
   )
 }
@@ -142,25 +134,25 @@ export default function AgendaPage() {
   }
 
   if (!authChecked) return (
-    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg }}>
-      <div style={{ fontFamily: C.mono, fontSize: 11, color: C.text3, letterSpacing: '0.15em' }}>Cargando...</div>
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+      <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.15em' }}>Cargando...</div>
     </div>
   )
 
   const timeInputStyle = {
-    background: C.bg, border: `1px solid ${C.border2}`, borderRadius: 7,
-    padding: '6px 10px', color: C.text1, fontFamily: C.mono, fontSize: 13,
+    background: 'var(--bg)', border: '1px solid var(--border-2)', borderRadius: 7,
+    padding: '6px 10px', color: 'var(--text-1)', fontFamily: 'var(--mono)', fontSize: 13,
     outline: 'none', cursor: 'pointer', width: 90,
   }
 
   const inputStyle = {
-    background: C.bg, border: `1px solid ${C.border2}`, borderRadius: 8,
-    padding: '8px 12px', color: C.text1, fontFamily: '"Funnel Sans",system-ui,sans-serif',
+    background: 'var(--bg)', border: '1px solid var(--border-2)', borderRadius: 8,
+    padding: '8px 12px', color: 'var(--text-1)', fontFamily: '"Funnel Sans",system-ui,sans-serif',
     fontSize: 14, outline: 'none', flex: 1,
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: C.bg }}>
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)' }}>
       <Sidebar />
       <main style={{ flex: 1, overflowY: 'auto' }}>
         <div style={{ padding: '32px 36px', maxWidth: 820 }}>
@@ -168,14 +160,14 @@ export default function AgendaPage() {
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
             <div>
-              <div style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: C.text3, marginBottom: 4 }}>Configuración</div>
-              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: '-0.03em' }}>Agenda</h1>
-              <p style={{ margin: '6px 0 0', color: C.text2, fontSize: 14 }}>Definí cuándo podés atender y qué servicios ofrecés.</p>
+              <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 4 }}>Configuración</div>
+              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-1)' }}>Agenda</h1>
+              <p style={{ margin: '6px 0 0', color: 'var(--text-2)', fontSize: 14 }}>Definí cuándo podés atender y qué servicios ofrecés.</p>
             </div>
             <button
               onClick={handleSave}
               disabled={saving}
-              style={{ background: saving ? 'rgba(160,255,121,0.3)' : C.green, color: '#0B0E0C', border: 'none', borderRadius: 10, padding: '10px 24px', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.8 : 1, transition: 'opacity 0.15s' }}>
+              style={{ background: saving ? 'var(--green-dim)' : 'var(--green)', color: 'var(--bg)', border: 'none', borderRadius: 10, padding: '10px 24px', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.8 : 1, transition: 'opacity 0.15s' }}>
               {saving ? 'Guardando...' : 'Guardar cambios'}
             </button>
           </div>
@@ -183,38 +175,38 @@ export default function AgendaPage() {
           {/* Disponibilidad semanal */}
           <section style={{ marginBottom: 28 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em' }}>Disponibilidad semanal</h2>
-              <span style={{ fontFamily: C.mono, fontSize: 10, color: C.text3, background: C.elevated, border: `1px solid ${C.border}`, borderRadius: 6, padding: '2px 8px' }}>
+              <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text-1)' }}>Disponibilidad semanal</h2>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--text-3)', background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
                 {disponibilidad.filter(d => d.activo).length} días activos
               </span>
             </div>
 
-            <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, overflow: 'hidden' }}>
+            <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
               {DAYS.map((day, i) => {
                 const config = disponibilidad.find(d => d.dia === day.dia) || DEFAULT_DISP.find(d => d.dia === day.dia)
                 const isLast = i === DAYS.length - 1
                 return (
-                  <div key={day.dia} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: isLast ? 'none' : `1px solid ${C.border}`, background: config.activo ? 'transparent' : 'rgba(0,0,0,0.15)', transition: 'background 0.15s' }}>
+                  <div key={day.dia} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: isLast ? 'none' : '1px solid var(--border)', background: config.activo ? 'transparent' : 'rgba(0,0,0,0.04)', transition: 'background 0.15s' }}>
                     <Toggle checked={config.activo} onChange={v => updateDia(day.dia, 'activo', v)} />
-                    <span style={{ width: 90, fontWeight: config.activo ? 600 : 400, fontSize: 14, color: config.activo ? C.text1 : C.text3, transition: 'color 0.15s' }}>{day.label}</span>
+                    <span style={{ width: 90, fontWeight: config.activo ? 600 : 400, fontSize: 14, color: config.activo ? 'var(--text-1)' : 'var(--text-3)', transition: 'color 0.15s' }}>{day.label}</span>
                     {config.activo ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontFamily: C.mono, fontSize: 10, color: C.text3, letterSpacing: '0.08em' }}>DESDE</span>
+                        <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--text-3)', letterSpacing: '0.08em' }}>DESDE</span>
                         <input
                           type="time"
                           value={config.hora_inicio}
                           onChange={e => updateDia(day.dia, 'hora_inicio', e.target.value)}
                           style={timeInputStyle}
                         />
-                        <span style={{ color: C.text3, fontSize: 16, fontWeight: 300 }}>→</span>
-                        <span style={{ fontFamily: C.mono, fontSize: 10, color: C.text3, letterSpacing: '0.08em' }}>HASTA</span>
+                        <span style={{ color: 'var(--text-3)', fontSize: 16, fontWeight: 300 }}>→</span>
+                        <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--text-3)', letterSpacing: '0.08em' }}>HASTA</span>
                         <input
                           type="time"
                           value={config.hora_fin}
                           onChange={e => updateDia(day.dia, 'hora_fin', e.target.value)}
                           style={timeInputStyle}
                         />
-                        <span style={{ fontFamily: C.mono, fontSize: 10, color: C.text3 }}>
+                        <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--text-3)' }}>
                           {(() => {
                             const [sh, sm] = config.hora_inicio.split(':').map(Number)
                             const [eh, em] = config.hora_fin.split(':').map(Number)
@@ -226,7 +218,7 @@ export default function AgendaPage() {
                         </span>
                       </div>
                     ) : (
-                      <span style={{ fontFamily: C.mono, fontSize: 11, color: C.text3 }}>No disponible</span>
+                      <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-3)' }}>No disponible</span>
                     )}
                   </div>
                 )
@@ -237,32 +229,32 @@ export default function AgendaPage() {
           {/* Servicios */}
           <section style={{ marginBottom: 32 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em' }}>Servicios</h2>
+              <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text-1)' }}>Servicios</h2>
               <button
                 onClick={addServicio}
-                style={{ background: C.greenDim, border: '1px solid rgba(160,255,121,0.2)', color: C.green, borderRadius: 8, padding: '7px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                style={{ background: 'var(--green-dim)', border: '1px solid var(--green-border)', color: 'var(--green)', borderRadius: 8, padding: '7px 14px', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Agregar servicio
               </button>
             </div>
 
-            <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, overflow: 'hidden' }}>
+            <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
               {/* Table header */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 40px', gap: 12, padding: '10px 16px', borderBottom: `1px solid ${C.border}`, background: C.elevated }}>
-                <span style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.text3 }}>Nombre del servicio</span>
-                <span style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.text3 }}>Duración (min)</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 40px', gap: 12, padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'var(--elevated)' }}>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-3)' }}>Nombre del servicio</span>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-3)' }}>Duración (min)</span>
                 <span />
               </div>
 
               {servicios.length === 0 ? (
-                <div style={{ padding: '36px', textAlign: 'center', color: C.text3, fontSize: 14 }}>
+                <div style={{ padding: '36px', textAlign: 'center', color: 'var(--text-3)', fontSize: 14 }}>
                   <div style={{ fontSize: 24, marginBottom: 10 }}>✂️</div>
                   <div>No hay servicios cargados.</div>
-                  <button onClick={addServicio} style={{ marginTop: 12, background: C.green, color: '#0B0E0C', border: 'none', borderRadius: 8, padding: '7px 16px', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  <button onClick={addServicio} style={{ marginTop: 12, background: 'var(--green)', color: 'var(--bg)', border: 'none', borderRadius: 8, padding: '7px 16px', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                     Agregar primer servicio
                   </button>
                 </div>
               ) : servicios.map((s, i) => (
-                <div key={s._key} style={{ display: 'grid', gridTemplateColumns: '1fr 160px 40px', gap: 12, padding: '10px 16px', alignItems: 'center', borderBottom: i < servicios.length - 1 ? `1px solid ${C.border}` : 'none' }}>
+                <div key={s._key} style={{ display: 'grid', gridTemplateColumns: '1fr 160px 40px', gap: 12, padding: '10px 16px', alignItems: 'center', borderBottom: i < servicios.length - 1 ? '1px solid var(--border)' : 'none' }}>
                   <input
                     value={s.nombre}
                     onChange={e => updateServicio(s._key, 'nombre', e.target.value)}
@@ -279,13 +271,13 @@ export default function AgendaPage() {
                       onChange={e => updateServicio(s._key, 'duracion_minutos', e.target.value)}
                       style={{ ...inputStyle, flex: 'none', width: 70, textAlign: 'center' }}
                     />
-                    <span style={{ fontFamily: C.mono, fontSize: 11, color: C.text3 }}>min</span>
+                    <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-3)' }}>min</span>
                   </div>
                   <button
                     onClick={() => removeServicio(s._key)}
-                    style={{ background: 'none', border: 'none', color: C.text3, cursor: 'pointer', fontSize: 16, padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, transition: 'color 0.12s' }}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 16, padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6, transition: 'color 0.12s' }}
                     onMouseEnter={e => e.currentTarget.style.color = '#ff6b6b'}
-                    onMouseLeave={e => e.currentTarget.style.color = C.text3}>
+                    onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>
                     ×
                   </button>
                 </div>
@@ -294,11 +286,11 @@ export default function AgendaPage() {
           </section>
 
           {/* API Info */}
-          <div style={{ background: C.elevated, border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 20px' }}>
-            <div style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.text3, marginBottom: 8 }}>Endpoint para el agente</div>
-            <div style={{ fontFamily: C.mono, fontSize: 12, color: C.green, marginBottom: 6 }}>GET /api/disponibilidad</div>
-            <div style={{ fontSize: 12, color: C.text3, lineHeight: 1.6 }}>
-              Parámetros: <span style={{ color: C.text2, fontFamily: C.mono }}>fecha</span> (YYYY-MM-DD) · <span style={{ color: C.text2, fontFamily: C.mono }}>servicio_id</span> · <span style={{ color: C.text2, fontFamily: C.mono }}>user_id</span>
+          <div style={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 8 }}>Endpoint para el agente</div>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--green)', marginBottom: 6 }}>GET /api/disponibilidad</div>
+            <div style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6 }}>
+              Parámetros: <span style={{ color: 'var(--text-2)', fontFamily: 'var(--mono)' }}>fecha</span> (YYYY-MM-DD) · <span style={{ color: 'var(--text-2)', fontFamily: 'var(--mono)' }}>servicio_id</span> · <span style={{ color: 'var(--text-2)', fontFamily: 'var(--mono)' }}>user_id</span>
               <br />Devuelve los horarios disponibles considerando tu agenda, los turnos ya ocupados y la duración del servicio.
             </div>
           </div>
