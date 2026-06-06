@@ -68,7 +68,7 @@ function Modal({ onClose, onSuccess }) {
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={onClose}>
       <div style={{ background: 'var(--panel)', border: '1px solid var(--border-2)', borderRadius: 20, padding: '32px', width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-1)' }}>Nuevo turno</h2>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-1)' }}>Nueva reserva</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 22, lineHeight: 1, padding: 4 }}>×</button>
         </div>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -112,7 +112,7 @@ function Modal({ onClose, onSuccess }) {
           <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
             <button type="button" onClick={onClose} style={{ flex: 1, background: 'none', border: '1px solid var(--border-2)', color: 'var(--text-2)', borderRadius: 10, padding: '11px', fontFamily: 'inherit', fontSize: 14, cursor: 'pointer' }}>Cancelar</button>
             <button type="submit" disabled={loading} style={{ flex: 1, background: 'var(--green)', color: 'var(--bg)', border: 'none', borderRadius: 10, padding: '11px', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.7 : 1 }}>
-              {loading ? 'Guardando...' : 'Guardar turno'}
+              {loading ? 'Guardando...' : 'Guardar reserva'}
             </button>
           </div>
         </form>
@@ -153,7 +153,7 @@ export default function TurnosPage() {
   }, [authChecked, loadTurnos])
 
   const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar este turno?')) return
+    if (!confirm('¿Eliminar esta reserva?')) return
     await supabase.from('turnos').delete().eq('id', id)
   }
 
@@ -177,10 +177,10 @@ export default function TurnosPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
             <div>
               <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 4 }}>Agenda</div>
-              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-1)' }}>Turnos</h1>
+              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-1)' }}>Reservas</h1>
             </div>
             <button onClick={() => setShowModal(true)} style={{ background: 'var(--green)', color: 'var(--bg)', border: 'none', borderRadius: 10, padding: '10px 20px', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}>
-              <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Nuevo turno
+              <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Nueva reserva
             </button>
           </div>
 
@@ -195,12 +195,12 @@ export default function TurnosPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-3)', fontFamily: 'var(--mono)', fontSize: 12 }}>Cargando turnos...</td></tr>
+                  <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-3)', fontFamily: 'var(--mono)', fontSize: 12 }}>Cargando reservas...</td></tr>
                 ) : turnos.length === 0 ? (
                   <tr><td colSpan={6} style={{ padding: '56px', textAlign: 'center' }}>
                     <div style={{ fontSize: 28, marginBottom: 10 }}>📅</div>
-                    <div style={{ color: 'var(--text-3)', fontSize: 14 }}>No hay turnos cargados aún.</div>
-                    <button onClick={() => setShowModal(true)} style={{ marginTop: 14, background: 'var(--green)', color: 'var(--bg)', border: 'none', borderRadius: 8, padding: '8px 16px', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Crear primer turno</button>
+                    <div style={{ color: 'var(--text-3)', fontSize: 14 }}>No hay reservas cargadas aún.</div>
+                    <button onClick={() => setShowModal(true)} style={{ marginTop: 14, background: 'var(--green)', color: 'var(--bg)', border: 'none', borderRadius: 8, padding: '8px 16px', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Crear primera reserva</button>
                   </td></tr>
                 ) : turnos.map((t, i) => (
                   <tr key={t.id} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)' }}>
@@ -228,7 +228,7 @@ export default function TurnosPage() {
         </div>
       </main>
 
-      {showModal && <Modal onClose={() => setShowModal(false)} onSuccess={() => setToast('¡Turno guardado correctamente!')} />}
+      {showModal && <Modal onClose={() => setShowModal(false)} onSuccess={() => setToast('¡Reserva guardada correctamente!')} />}
       {toast && <Toast msg={toast} onDone={() => setToast('')} />}
     </div>
   )
