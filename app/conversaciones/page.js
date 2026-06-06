@@ -49,8 +49,6 @@ function formatTime(ts) {
 function normalizeNumber(jid = '') {
   const raw = jid.replace(/@.*$/, '').replace(/\D/g, '')
   if (!raw) return jid
-  // Use last 10 digits to handle country-code format differences
-  // (e.g. 5491123290927 and 541123290927 both end in 1123290927)
   return raw.slice(-10)
 }
 
@@ -58,49 +56,35 @@ function isRealName(str) {
   return str && /[a-zA-ZÀ-ÿ\s]/.test(str) && str.length > 2
 }
 
-function chatDisplayName(chat) {
-  const n = chat.pushName || chat.lastMessage?.pushName
-  if (isRealName(n) && n !== 'Você') return n
-  return null
+// For LID chats, Evolution stores the real phone JID in lastMessage.key.remoteJidAlt
+// Use that as the group key so LID chat merges with its phone-JID twin
+function getGroupKey(chat) {
+  const jid = chat.remoteJid || ''
+  if (jid.endsWith('@lid')) {
+    const alt = chat.lastMessage?.key?.remoteJidAlt
+    if (alt) return normalizeNumber(alt)
+  }
+  return normalizeNumber(jid)
 }
 
-// Merge chat list: group by normalized phone (last 10 digits), pick best name & most recent
 function mergeChats(chats) {
   const groups = {}
 
   for (const chat of chats) {
-    // Skip WhatsApp broadcast/status chats
-    if (chat.remoteJid?.includes('@broadcast') || chat.remoteJid?.includes('status')) continue
+    // Skip system/broadcast chats (0@s.whatsapp.net, @broadcast, status)
+    const jid = chat.remoteJid || ''
+    if (jid === '0@s.whatsapp.net' || jid.includes('@broadcast') || jid.includes('status')) continue
 
-    const key = normalizeNumber(chat.remoteJid)
+    const key = getGroupKey(chat)
     if (!key) continue
-    if (!groups[key]) groups[key] = { chats: [], number: key }
+    if (!groups[key]) groups[key] = { chats: [], key }
     groups[key].chats.push(chat)
   }
 
-  // Secondary merge: group LID chats with phone chats by push name
-  // (WhatsApp LID migration stores incoming as XXXX@lid and outgoing as phone@s.whatsapp.net)
-  const byName = {}
-  for (const [key, group] of Object.entries(groups)) {
-    const name = group.chats.map(c => chatDisplayName(c)).find(Boolean)
-    if (name) {
-      if (!byName[name]) byName[name] = []
-      byName[name].push(key)
-    }
-  }
-  for (const keys of Object.values(byName)) {
-    if (keys.length < 2) continue
-    // Merge all groups with the same display name into the first one
-    const [primary, ...rest] = keys
-    for (const k of rest) {
-      groups[primary].chats.push(...groups[k].chats)
-      delete groups[k]
-    }
-  }
-
-  return Object.values(groups).map(({ chats, number }) => {
+  return Object.values(groups).map(({ chats, key }) => {
+    // Prefer the chat that has a real human name
     const best = chats.find(c => isRealName(c.pushName) && c.pushName !== 'Você')
-      ?? chats.find(c => isRealName(c.pushName))
+      ?? chats.find(c => isRealName(c.lastMessage?.pushName))
       ?? chats[0]
 
     const allMsgs = chats.map(c => c.lastMessage).filter(Boolean)
@@ -108,19 +92,23 @@ function mergeChats(chats) {
       (b.messageTimestamp || 0) - (a.messageTimestamp || 0)
     )[0] ?? best.lastMessage
 
+    // Collect all JIDs (phone + LID) so messages are fetched from both
     const allJids = [...new Set(chats.map(c => c.remoteJid))]
-    const unreadCount = chats.reduce((sum, c) => sum + (c.unreadCount || 0), 0)
 
-    // Full phone number from the best JID (for display + profile pic API)
-    const fullNumber = best.remoteJid.replace(/@.*$/, '').replace(/\D/g, '') || number
+    // For the phone number to display/pass to profile-pic: prefer the @s.whatsapp.net JID
+    const phoneJid = chats.find(c => c.remoteJid?.endsWith('@s.whatsapp.net'))?.remoteJid
+      ?? best.remoteJid
+    const fullNumber = phoneJid.replace(/@.*$/, '').replace(/\D/g, '') || key
+
+    const unreadCount = chats.reduce((sum, c) => sum + (c.unreadCount || 0), 0)
 
     return {
       ...best,
       lastMessage,
       unreadCount,
       allJids,
-      number: fullNumber,     // displayed in UI and passed to profile-pic API
-      _key: number,           // internal dedup key (last 10 digits)
+      number: fullNumber,
+      _key: key,
     }
   }).sort((a, b) =>
     (b.lastMessage?.messageTimestamp || 0) - (a.lastMessage?.messageTimestamp || 0)
