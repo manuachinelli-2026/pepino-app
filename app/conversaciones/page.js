@@ -6,10 +6,8 @@ import Sidebar from '../../components/Sidebar'
 
 const AUTH_REDIRECT = '/login'
 
-// ── Labels (hardcoded, deterministic by JID) ──────────────────────────────────
-const LABEL_OVERRIDES = {
-  // You can pin specific JIDs here: 'jid@s.whatsapp.net': 'agendado'
-}
+// ── Labels ────────────────────────────────────────────────────────────────────
+const LABEL_OVERRIDES = {}
 const LABEL_LIST = ['interesado', 'agendado', 'recurrente', 'nuevo']
 const LABEL_COLORS = {
   interesado: { bg: 'rgba(167,139,250,0.14)', border: 'rgba(167,139,250,0.30)', text: '#A78BFA' },
@@ -49,40 +47,80 @@ function formatTime(ts) {
 }
 
 function normalizeNumber(jid = '') {
-  return jid.replace('@s.whatsapp.net', '').replace('@lid', '').replace('@g.us', '')
+  return jid.replace(/@s\.whatsapp\.net$/, '').replace(/@lid$/, '').replace(/@g\.us$/, '').replace(/@.*$/, '')
 }
 
 function isRealName(str) {
   return str && /[a-zA-ZÀ-ÿ\s]/.test(str) && str.length > 2
 }
 
-// ── Label Badge ───────────────────────────────────────────────────────────────
-function LabelBadge({ jid, style = {} }) {
+// Merge chat list: group by normalized phone number, pick best name & most recent
+function mergeChats(chats) {
+  const groups = {}
+  for (const chat of chats) {
+    const num = normalizeNumber(chat.remoteJid)
+    if (!groups[num]) {
+      groups[num] = { chats: [], number: num }
+    }
+    groups[num].chats.push(chat)
+  }
+
+  return Object.values(groups).map(({ chats, number }) => {
+    // Pick the chat with a real human name (not "Você"), or the most recent one
+    const best = chats.find(c => isRealName(c.pushName) && c.pushName !== 'Você')
+      ?? chats.find(c => isRealName(c.pushName))
+      ?? chats[0]
+
+    // Most recent last message across all chats in group
+    const allMsgs = chats.map(c => c.lastMessage).filter(Boolean)
+    const lastMessage = allMsgs.sort((a, b) =>
+      (b.messageTimestamp || 0) - (a.messageTimestamp || 0)
+    )[0] ?? best.lastMessage
+
+    // Collect all JIDs for this number (to query all messages)
+    const allJids = [...new Set(chats.map(c => c.remoteJid))]
+
+    // Sum unread counts
+    const unreadCount = chats.reduce((sum, c) => sum + (c.unreadCount || 0), 0)
+
+    return {
+      ...best,
+      lastMessage,
+      unreadCount,
+      allJids,      // used when fetching messages
+      number,
+    }
+  }).sort((a, b) =>
+    (b.lastMessage?.messageTimestamp || 0) - (a.lastMessage?.messageTimestamp || 0)
+  )
+}
+
+// ── Components ────────────────────────────────────────────────────────────────
+function LabelBadge({ jid }) {
   const label = getLabel(jid)
   const c = LABEL_COLORS[label]
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 4,
+      display: 'inline-flex', alignItems: 'center',
       padding: '2px 7px', borderRadius: 99,
       background: c.bg, border: `1px solid ${c.border}`,
       fontFamily: 'var(--mono)', fontSize: 9, fontWeight: 700,
       color: c.text, textTransform: 'lowercase', letterSpacing: '0.04em',
       flexShrink: 0, whiteSpace: 'nowrap',
-      ...style,
     }}>
       {label}
     </span>
   )
 }
 
-// ── Avatar ────────────────────────────────────────────────────────────────────
 function Avatar({ name, photoUrl, size = 40 }) {
+  const [imgError, setImgError] = useState(false)
   const letter = (name || '?')[0].toUpperCase()
-  if (photoUrl) {
+  if (photoUrl && !imgError) {
     return (
       <img src={photoUrl} alt={name}
         style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid var(--border)' }}
-        onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
+        onError={() => setImgError(true)}
       />
     )
   }
@@ -97,84 +135,59 @@ function Avatar({ name, photoUrl, size = 40 }) {
   )
 }
 
-// ── AI Agent Toggle ───────────────────────────────────────────────────────────
 function AgentToggle({ enabled, onToggle }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <div style={{ textAlign: 'right' }}>
-        <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-3)' }}>
-          AI Agent
-        </div>
+        <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-3)' }}>AI Agent</div>
         <div style={{ fontSize: 11, fontWeight: 600, color: enabled ? 'var(--green)' : 'var(--text-3)' }}>
           {enabled ? 'Activo' : 'Inactivo'}
         </div>
       </div>
-      <div
-        onClick={onToggle}
-        style={{
-          width: 44, height: 24, borderRadius: 99,
-          background: enabled ? 'var(--green)' : 'var(--elevated)',
-          border: `1px solid ${enabled ? 'transparent' : 'var(--border-2)'}`,
-          cursor: 'pointer', position: 'relative',
-          transition: 'background 0.2s, border-color 0.2s',
-          flexShrink: 0,
-          boxShadow: enabled ? '0 0 10px rgba(160,255,121,0.3)' : 'none',
-        }}
-      >
+      <div onClick={onToggle} style={{
+        width: 44, height: 24, borderRadius: 99,
+        background: enabled ? 'var(--green)' : 'var(--elevated)',
+        border: `1px solid ${enabled ? 'transparent' : 'var(--border-2)'}`,
+        cursor: 'pointer', position: 'relative',
+        transition: 'background 0.2s',
+        boxShadow: enabled ? '0 0 10px rgba(160,255,121,0.3)' : 'none',
+        flexShrink: 0,
+      }}>
         <div style={{
           width: 18, height: 18, borderRadius: '50%',
           background: enabled ? 'var(--bg)' : 'var(--text-3)',
-          position: 'absolute', top: 2,
-          left: enabled ? 22 : 2,
-          transition: 'left 0.2s, background 0.2s',
+          position: 'absolute', top: 2, left: enabled ? 22 : 2,
+          transition: 'left 0.2s',
         }} />
       </div>
     </div>
   )
 }
 
-// ── Message bubble ────────────────────────────────────────────────────────────
 function Bubble({ msg, prevMsg }) {
   const fromMe = !!msg.key?.fromMe
   const text = getMsgText(msg)
   const time = formatTime(msg.messageTimestamp)
-  const prevFromMe = !!prevMsg?.key?.fromMe
-  const groupTop = prevMsg && prevFromMe === fromMe
-
+  const grouped = prevMsg && !!prevMsg.key?.fromMe === fromMe
   return (
     <div style={{
-      display: 'flex',
-      justifyContent: fromMe ? 'flex-end' : 'flex-start',
-      marginBottom: groupTop ? 2 : 8,
+      display: 'flex', justifyContent: fromMe ? 'flex-end' : 'flex-start',
+      marginBottom: grouped ? 2 : 8,
       paddingLeft: fromMe ? '15%' : 0,
       paddingRight: fromMe ? 0 : '15%',
     }}>
       <div style={{
-        maxWidth: '100%',
-        padding: '7px 12px 5px',
-        borderRadius: fromMe
-          ? `16px 4px 16px 16px`
-          : `4px 16px 16px 16px`,
+        maxWidth: '100%', padding: '7px 12px 5px',
+        borderRadius: fromMe ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
         background: fromMe ? 'var(--green)' : 'var(--panel)',
         border: fromMe ? 'none' : '1px solid var(--border)',
         boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
-        position: 'relative',
       }}>
-        <div style={{
-          fontSize: 14, lineHeight: 1.5,
-          color: fromMe ? 'var(--bg)' : 'var(--text-1)',
-          wordBreak: 'break-word',
-        }}>
+        <div style={{ fontSize: 14, lineHeight: 1.5, color: fromMe ? 'var(--bg)' : 'var(--text-1)', wordBreak: 'break-word' }}>
           {text}
         </div>
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-          gap: 3, marginTop: 2,
-        }}>
-          <span style={{
-            fontFamily: 'var(--mono)', fontSize: 10,
-            color: fromMe ? 'rgba(0,0,0,0.45)' : 'var(--text-3)',
-          }}>{time}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 3, marginTop: 2 }}>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: fromMe ? 'rgba(0,0,0,0.45)' : 'var(--text-3)' }}>{time}</span>
           {fromMe && (
             <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
               <path d="M1 5l3 3 5-7M7 5l3-3" stroke="rgba(0,0,0,0.45)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -186,11 +199,9 @@ function Bubble({ msg, prevMsg }) {
   )
 }
 
-// ── QR Modal ──────────────────────────────────────────────────────────────────
 function QRModal({ onClose }) {
   const [qrData, setQrData] = useState(null)
   const [loading, setLoading] = useState(true)
-
   useEffect(() => {
     const load = async () => {
       setLoading(true)
@@ -202,7 +213,6 @@ function QRModal({ onClose }) {
     const t = setInterval(load, 25000)
     return () => clearInterval(t)
   }, [])
-
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
       <div style={{ background: 'var(--panel)', border: '1px solid var(--border-2)', borderRadius: 20, padding: '36px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 340 }} onClick={e => e.stopPropagation()}>
@@ -214,8 +224,10 @@ function QRModal({ onClose }) {
             : <div style={{ width: 256, height: 256, background: 'var(--elevated)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-3)', textAlign: 'center', padding: 20 }}>{qrData?.error ?? 'Ya conectado.'}</div>
         }
         <ol style={{ margin: 0, padding: '0 0 0 18px', color: 'var(--text-2)', fontSize: 13.5, lineHeight: 1.8, width: '100%' }}>
-          <li>Abrí WhatsApp en tu celular</li><li>Dispositivos vinculados</li>
-          <li>Vincular dispositivo</li><li>Escaneá este QR</li>
+          <li>Abrí WhatsApp en tu celular</li>
+          <li>Dispositivos vinculados</li>
+          <li>Vincular dispositivo</li>
+          <li>Escaneá este QR</li>
         </ol>
         <button onClick={onClose} style={{ background: 'none', border: '1px solid var(--border-2)', color: 'var(--text-2)', borderRadius: 8, padding: '8px 20px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>Cerrar</button>
       </div>
@@ -223,12 +235,12 @@ function QRModal({ onClose }) {
   )
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 export default function ConversacionesPage() {
   const router = useRouter()
   const [authChecked, setAuthChecked]   = useState(false)
   const [status, setStatus]             = useState({ connected: false, state: 'loading' })
-  const [chats, setChats]               = useState([])
+  const [rawChats, setRawChats]         = useState([])
   const [selectedChat, setSelectedChat] = useState(null)
   const [messages, setMessages]         = useState([])
   const [search, setSearch]             = useState('')
@@ -240,7 +252,9 @@ export default function ConversacionesPage() {
   const msgsEndRef = useRef(null)
   const inputRef   = useRef(null)
 
-  // Auth
+  // Merged + deduplicated chat list
+  const chats = mergeChats(rawChats)
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.push(AUTH_REDIRECT); return }
@@ -250,7 +264,6 @@ export default function ConversacionesPage() {
     if (saved !== null) setAgentEnabled(saved === 'true')
   }, [router])
 
-  // WA status poll
   useEffect(() => {
     if (!authChecked) return
     const poll = async () => {
@@ -261,53 +274,50 @@ export default function ConversacionesPage() {
     return () => clearInterval(t)
   }, [authChecked])
 
-  // Chat list poll
   useEffect(() => {
-    if (!status.connected) { setChats([]); return }
+    if (!status.connected) { setRawChats([]); return }
     const load = async () => {
-      try { const r = await fetch('/api/chats'); setChats(await r.json()) } catch {}
+      try { const r = await fetch('/api/chats'); setRawChats(await r.json()) } catch {}
     }
     load()
     const t = setInterval(load, 10000)
     return () => clearInterval(t)
   }, [status.connected])
 
-  // Messages poll for selected chat
-  const loadMessages = useCallback(async (jid) => {
+  // Fetch messages for all JIDs of selected chat
+  const loadMessages = useCallback(async (allJids) => {
+    if (!allJids?.length) return
     try {
-      const r = await fetch(`/api/messages?jid=${encodeURIComponent(jid)}`)
-      const data = await r.json()
-      setMessages(data)
+      const params = allJids.map(j => `jid=${encodeURIComponent(j)}`).join('&')
+      const r = await fetch(`/api/messages?${params}`)
+      setMessages(await r.json())
     } catch {}
   }, [])
 
   useEffect(() => {
     if (!selectedChat) return
-    loadMessages(selectedChat.remoteJid)
-    const t = setInterval(() => loadMessages(selectedChat.remoteJid), 3000)
+    loadMessages(selectedChat.allJids)
+    const t = setInterval(() => loadMessages(selectedChat.allJids), 3000)
     return () => clearInterval(t)
   }, [selectedChat, loadMessages])
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     msgsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages.length])
 
-  // Fetch profile pic when chat changes
   useEffect(() => {
     setProfilePic(null)
     if (!selectedChat) return
-    const number = normalizeNumber(selectedChat.remoteJid)
-    fetch(`/api/profile-pic?number=${encodeURIComponent(number)}`)
+    fetch(`/api/profile-pic?number=${encodeURIComponent(selectedChat.number)}`)
       .then(r => r.json())
       .then(d => { if (d.url) setProfilePic(d.url) })
       .catch(() => {})
-  }, [selectedChat?.remoteJid])
+  }, [selectedChat?.number])
 
-  const getChatName = (c) => {
-    const name = c.pushName || c.lastMessage?.pushName
-    if (isRealName(name)) return name
-    return normalizeNumber(c.remoteJid) || 'Desconocido'
+  const getChatName = (chat) => {
+    const name = chat.pushName || chat.lastMessage?.pushName
+    if (isRealName(name) && name !== 'Você') return name
+    return chat.number || 'Desconocido'
   }
 
   const toggleAgent = () => {
@@ -327,28 +337,25 @@ export default function ConversacionesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jid: selectedChat.remoteJid, text }),
       })
-      // Reload messages after short delay for the sent msg to appear
-      setTimeout(() => loadMessages(selectedChat.remoteJid), 600)
+      setTimeout(() => loadMessages(selectedChat.allJids), 800)
     } catch {}
     setSending(false)
     inputRef.current?.focus()
   }
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
   }
 
   const handleLogout = async () => {
     await fetch('/api/logout', { method: 'DELETE' })
     setStatus({ connected: false, state: 'closed' })
-    setChats([]); setSelectedChat(null)
+    setRawChats([]); setSelectedChat(null)
   }
 
   const filteredChats = chats.filter(c =>
-    getChatName(c).toLowerCase().includes(search.toLowerCase())
+    getChatName(c).toLowerCase().includes(search.toLowerCase()) ||
+    (c.number || '').includes(search)
   )
 
   if (!authChecked) return (
@@ -358,21 +365,14 @@ export default function ConversacionesPage() {
   )
 
   const selectedName = selectedChat ? getChatName(selectedChat) : ''
-  const selectedNumber = selectedChat ? normalizeNumber(selectedChat.remoteJid) : ''
-  const chatBg = 'var(--bg)'
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', fontFamily: 'var(--sans)' }}>
       <Sidebar />
-
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
-        {/* ── Top bar ── */}
-        <header style={{
-          height: 52, flexShrink: 0, zIndex: 10,
-          display: 'flex', alignItems: 'center', padding: '0 20px', gap: 14,
-          borderBottom: '1px solid var(--border)', background: 'var(--panel)',
-        }}>
+        {/* Top bar */}
+        <header style={{ height: 52, flexShrink: 0, zIndex: 10, display: 'flex', alignItems: 'center', padding: '0 20px', gap: 14, borderBottom: '1px solid var(--border)', background: 'var(--panel)' }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-3)' }}>WhatsApp</div>
             <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text-1)' }}>Conversaciones</div>
@@ -393,20 +393,13 @@ export default function ConversacionesPage() {
           </div>
         </header>
 
-        {/* ── Main area ── */}
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-          {/* ── Chat list ── */}
-          <aside style={{
-            width: 310, flexShrink: 0,
-            borderRight: '1px solid var(--border)',
-            display: 'flex', flexDirection: 'column',
-            background: 'var(--panel)',
-          }}>
+          {/* Chat list */}
+          <aside style={{ width: 310, flexShrink: 0, borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', background: 'var(--panel)' }}>
             <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
               <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
+                value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Buscar conversación..."
                 style={{ width: '100%', background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 20, padding: '7px 14px', color: 'var(--text-1)', fontFamily: 'inherit', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
               />
@@ -414,33 +407,21 @@ export default function ConversacionesPage() {
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {!status.connected ? (
                 <div style={{ padding: '48px 20px', textAlign: 'center' }}>
-                  <p style={{ color: 'var(--text-3)', fontSize: 13, lineHeight: 1.6 }}>
-                    Conectá tu WhatsApp para ver las conversaciones.
-                  </p>
-                  <button onClick={() => setShowQR(true)} style={{ marginTop: 8, background: 'var(--green)', color: 'var(--bg)', border: 'none', borderRadius: 8, padding: '8px 16px', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                    Conectar ahora
-                  </button>
+                  <p style={{ color: 'var(--text-3)', fontSize: 13, lineHeight: 1.6 }}>Conectá tu WhatsApp para ver las conversaciones.</p>
+                  <button onClick={() => setShowQR(true)} style={{ marginTop: 8, background: 'var(--green)', color: 'var(--bg)', border: 'none', borderRadius: 8, padding: '8px 16px', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Conectar ahora</button>
                 </div>
               ) : filteredChats.length === 0 ? (
                 <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>
                   {search ? 'Sin resultados.' : 'No hay conversaciones.'}
                 </div>
               ) : filteredChats.map(chat => {
-                const isSelected = selectedChat?.remoteJid === chat.remoteJid
+                const isSelected = selectedChat?.number === chat.number
                 const name = getChatName(chat)
                 const lastMsg = getMsgText(chat.lastMessage)
                 const fromMe = !!chat.lastMessage?.key?.fromMe
                 return (
-                  <div
-                    key={chat.remoteJid}
-                    onClick={() => setSelectedChat(chat)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '10px 14px', cursor: 'pointer',
-                      background: isSelected ? 'var(--elevated)' : 'transparent',
-                      borderBottom: '1px solid var(--border)',
-                      transition: 'background 0.1s',
-                    }}
+                  <div key={chat.number} onClick={() => setSelectedChat(chat)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', cursor: 'pointer', background: isSelected ? 'var(--elevated)' : 'transparent', borderBottom: '1px solid var(--border)', transition: 'background 0.1s' }}
                     onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--elevated)' }}
                     onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
                   >
@@ -468,8 +449,8 @@ export default function ConversacionesPage() {
             </div>
           </aside>
 
-          {/* ── Messages panel ── */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: chatBg }}>
+          {/* Messages panel */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg)' }}>
             {!selectedChat ? (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: 'var(--text-3)' }}>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" opacity="0.3">
@@ -479,13 +460,8 @@ export default function ConversacionesPage() {
               </div>
             ) : (
               <>
-                {/* Chat header */}
-                <div style={{
-                  padding: '10px 20px', flexShrink: 0,
-                  borderBottom: '1px solid var(--border)',
-                  background: 'var(--panel)',
-                  display: 'flex', alignItems: 'center', gap: 12,
-                }}>
+                {/* Header */}
+                <div style={{ padding: '10px 20px', flexShrink: 0, borderBottom: '1px solid var(--border)', background: 'var(--panel)', display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ position: 'relative' }}>
                     <Avatar name={selectedName} photoUrl={profilePic} size={42} />
                     <div style={{ position: 'absolute', bottom: 0, right: 0, width: 11, height: 11, borderRadius: '50%', background: 'var(--green)', border: '2px solid var(--panel)', display: status.connected ? 'block' : 'none' }} />
@@ -495,31 +471,24 @@ export default function ConversacionesPage() {
                       <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-1)' }}>{selectedName}</span>
                       <LabelBadge jid={selectedChat.remoteJid} />
                     </div>
-                    <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--text-3)' }}>{selectedNumber}</div>
+                    <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--text-3)' }}>{selectedChat.number}</div>
                   </div>
-                  {/* AI Agent toggle */}
                   <AgentToggle enabled={agentEnabled} onToggle={toggleAgent} />
                 </div>
 
                 {/* Messages */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 8px' }}>
                   {messages.length === 0 ? (
-                    <div style={{ textAlign: 'center', color: 'var(--text-3)', fontSize: 13, marginTop: 40 }}>
-                      No hay mensajes.
-                    </div>
-                  ) : (
-                    messages.map((msg, i) => (
-                      <Bubble key={msg.key?.id || i} msg={msg} prevMsg={messages[i - 1]} />
-                    ))
-                  )}
+                    <div style={{ textAlign: 'center', color: 'var(--text-3)', fontSize: 13, marginTop: 40 }}>No hay mensajes.</div>
+                  ) : messages.map((msg, i) => (
+                    <Bubble key={msg.key?.id || i} msg={msg} prevMsg={messages[i - 1]} />
+                  ))}
                   {agentEnabled && (
                     <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 4 }}>
                       <div style={{ padding: '7px 14px', borderRadius: '4px 16px 16px 16px', background: 'var(--panel)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--green)', letterSpacing: '0.08em' }}>AI</span>
                         <div style={{ display: 'flex', gap: 3 }}>
-                          {[0, 1, 2].map(i => (
-                            <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--text-3)', animation: `bounce 1.2s ${i * 0.2}s infinite` }} />
-                          ))}
+                          {[0,1,2].map(i => <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--text-3)', animation: `bounce 1.2s ${i*0.2}s infinite` }} />)}
                         </div>
                       </div>
                     </div>
@@ -528,45 +497,20 @@ export default function ConversacionesPage() {
                 </div>
 
                 {/* Input */}
-                <div style={{
-                  padding: '10px 16px 14px',
-                  borderTop: '1px solid var(--border)',
-                  background: 'var(--panel)',
-                  display: 'flex', alignItems: 'flex-end', gap: 10,
-                }}>
+                <div style={{ padding: '10px 16px 14px', borderTop: '1px solid var(--border)', background: 'var(--panel)', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
                   <textarea
-                    ref={inputRef}
-                    value={input}
+                    ref={inputRef} value={input}
                     onChange={e => {
                       setInput(e.target.value)
                       e.target.style.height = 'auto'
                       e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
                     }}
                     onKeyDown={handleKeyDown}
-                    placeholder="Escribí un mensaje..."
-                    rows={1}
-                    style={{
-                      flex: 1, resize: 'none', overflowY: 'auto',
-                      background: 'var(--elevated)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 20,
-                      padding: '9px 16px',
-                      color: 'var(--text-1)',
-                      fontFamily: 'var(--sans)',
-                      fontSize: 14, lineHeight: 1.5,
-                      outline: 'none',
-                    }}
+                    placeholder="Escribí un mensaje..." rows={1}
+                    style={{ flex: 1, resize: 'none', overflowY: 'auto', background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 20, padding: '9px 16px', color: 'var(--text-1)', fontFamily: 'var(--sans)', fontSize: 14, lineHeight: 1.5, outline: 'none' }}
                   />
-                  <button
-                    onClick={handleSend}
-                    disabled={!input.trim() || sending}
-                    style={{
-                      width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-                      background: input.trim() ? 'var(--green)' : 'var(--elevated)',
-                      border: 'none', cursor: input.trim() ? 'pointer' : 'default',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'background 0.15s',
-                    }}
+                  <button onClick={handleSend} disabled={!input.trim() || sending}
+                    style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, background: input.trim() ? 'var(--green)' : 'var(--elevated)', border: 'none', cursor: input.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                       <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke={input.trim() ? 'var(--bg)' : 'var(--text-3)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -580,13 +524,7 @@ export default function ConversacionesPage() {
       </div>
 
       {showQR && <QRModal onClose={() => setShowQR(false)} />}
-
-      <style>{`
-        @keyframes bounce {
-          0%, 60%, 100% { transform: translateY(0) }
-          30% { transform: translateY(-4px) }
-        }
-      `}</style>
+      <style>{`@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-4px)} }`}</style>
     </div>
   )
 }

@@ -1,28 +1,33 @@
 export async function GET(request) {
-  const jid = new URL(request.url).searchParams.get('jid')
-  const url = `${process.env.EVOLUTION_URL}/chat/findMessages/${process.env.EVOLUTION_INSTANCE}`
+  const url = new URL(request.url)
+  // Accept either a single jid or multiple (jid can appear multiple times)
+  const jids = url.searchParams.getAll('jid')
+  if (!jids.length) return Response.json([])
+
+  const base = `${process.env.EVOLUTION_URL}/chat/findMessages/${process.env.EVOLUTION_INSTANCE}`
   const headers = { apikey: process.env.EVOLUTION_KEY, 'Content-Type': 'application/json' }
 
   try {
-    // Fetch received AND sent separately — Evolution filters by fromMe in the key
-    const [resIn, resOut] = await Promise.all([
-      fetch(url, {
+    // For each JID, fetch both directions
+    const fetches = jids.flatMap(jid => [
+      fetch(base, {
         method: 'POST', headers, cache: 'no-store',
         body: JSON.stringify({ where: { key: { remoteJid: jid, fromMe: false } }, limit: 60 }),
       }),
-      fetch(url, {
+      fetch(base, {
         method: 'POST', headers, cache: 'no-store',
         body: JSON.stringify({ where: { key: { remoteJid: jid, fromMe: true } }, limit: 60 }),
       }),
     ])
 
-    const [dIn, dOut] = await Promise.all([resIn.json(), resOut.json()])
-    const incoming = Array.isArray(dIn)  ? dIn  : (dIn?.messages?.records  ?? [])
-    const outgoing = Array.isArray(dOut) ? dOut : (dOut?.messages?.records ?? [])
+    const responses = await Promise.all(fetches)
+    const bodies    = await Promise.all(responses.map(r => r.json()))
 
-    // Merge, deduplicate by key.id, sort ascending by timestamp
+    const all = bodies.flatMap(d => Array.isArray(d) ? d : (d?.messages?.records ?? []))
+
+    // Deduplicate by key.id, sort ascending
     const seen = new Set()
-    const all = [...incoming, ...outgoing]
+    const deduped = all
       .filter(m => {
         const id = m.key?.id
         if (!id || seen.has(id)) return false
@@ -31,7 +36,7 @@ export async function GET(request) {
       })
       .sort((a, b) => (a.messageTimestamp || 0) - (b.messageTimestamp || 0))
 
-    return Response.json(all)
+    return Response.json(deduped)
   } catch {
     return Response.json([])
   }
