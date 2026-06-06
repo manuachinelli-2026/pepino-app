@@ -47,7 +47,7 @@ function Modal({ onClose, onSuccess }) {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error: err } = await supabase.from('turnos').insert([form])
+    const { error: err } = await supabase.from('reservas').insert([form])
     setLoading(false)
     if (err) { setError(err.message); return }
     onSuccess()
@@ -124,14 +124,14 @@ function Modal({ onClose, onSuccess }) {
 export default function TurnosPage() {
   const router = useRouter()
   const [authChecked, setAuthChecked] = useState(false)
-  const [turnos, setTurnos] = useState([])
+  const [reservas, setReservas] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [toast, setToast] = useState('')
   const [loading, setLoading] = useState(true)
 
-  const loadTurnos = useCallback(async () => {
-    const { data } = await supabase.from('turnos').select('*').order('fecha', { ascending: true }).order('hora', { ascending: true })
-    setTurnos(data || [])
+  const loadReservas = useCallback(async () => {
+    const { data } = await supabase.from('reservas').select('*').order('fecha', { ascending: true }).order('hora', { ascending: true })
+    setReservas(data || [])
     setLoading(false)
   }, [])
 
@@ -144,17 +144,17 @@ export default function TurnosPage() {
 
   useEffect(() => {
     if (!authChecked) return
-    loadTurnos()
+    loadReservas()
     const channel = supabase
-      .channel('turnos-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'turnos' }, loadTurnos)
+      .channel('reservas-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservas' }, loadReservas)
       .subscribe()
     return () => supabase.removeChannel(channel)
-  }, [authChecked, loadTurnos])
+  }, [authChecked, loadReservas])
 
   const handleDelete = async (id) => {
     if (!confirm('¿Eliminar esta reserva?')) return
-    await supabase.from('turnos').delete().eq('id', id)
+    await supabase.from('reservas').delete().eq('id', id)
   }
 
   const formatFecha = (f) => {
@@ -196,13 +196,13 @@ export default function TurnosPage() {
               <tbody>
                 {loading ? (
                   <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-3)', fontFamily: 'var(--mono)', fontSize: 12 }}>Cargando reservas...</td></tr>
-                ) : turnos.length === 0 ? (
+                ) : reservas.length === 0 ? (
                   <tr><td colSpan={6} style={{ padding: '56px', textAlign: 'center' }}>
                     <div style={{ fontSize: 28, marginBottom: 10 }}>📅</div>
                     <div style={{ color: 'var(--text-3)', fontSize: 14 }}>No hay reservas cargadas aún.</div>
                     <button onClick={() => setShowModal(true)} style={{ marginTop: 14, background: 'var(--green)', color: 'var(--bg)', border: 'none', borderRadius: 8, padding: '8px 16px', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Crear primera reserva</button>
                   </td></tr>
-                ) : turnos.map((t, i) => (
+                ) : reservas.map((t, i) => (
                   <tr key={t.id} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)' }}>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-1)' }}>{t.cliente_nombre}</div>

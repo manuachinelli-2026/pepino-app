@@ -22,7 +22,7 @@ export async function GET(request) {
   const date = new Date(`${fecha}T12:00:00`)
   const diaSemana = date.getDay()
 
-  const [{ data: disp }, { data: servicio }, { data: turnos }] = await Promise.all([
+  const [{ data: disp }, { data: servicio }, { data: reservas }] = await Promise.all([
     supabase
       .from('disponibilidad')
       .select('activo, hora_inicio, hora_fin')
@@ -37,7 +37,7 @@ export async function GET(request) {
       .single(),
 
     supabase
-      .from('turnos')
+      .from('reservas')
       .select('hora')
       .eq('fecha', fecha)
       .neq('estado', 'cancelado'),
@@ -58,7 +58,7 @@ export async function GET(request) {
   const endMin = endH * 60 + endM
 
   // Occupied slots in minutes from midnight
-  const occupied = (turnos || []).map(t => {
+  const occupied = (reservas || []).map(t => {
     const [h, m] = t.hora.split(':').map(Number)
     return h * 60 + m
   })

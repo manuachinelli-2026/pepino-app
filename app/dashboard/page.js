@@ -16,7 +16,7 @@ const METRICS = [
     iconColor: '#A0FF79',
   },
   {
-    label: 'Turnos agendados',
+    label: 'Reservas agendadas',
     value: '18',
     change: '+12%',
     iconFile: '/icons/turnos-agendados.svg',
@@ -39,7 +39,7 @@ const METRICS = [
 ]
 
 const DONUT = [
-  { name: 'Turnos', value: 42, color: '#A0FF79' },
+  { name: 'Reservas', value: 42, color: '#A0FF79' },
   { name: 'Precios', value: 27, color: '#5ec47a' },
   { name: 'Horarios', value: 18, color: '#318c50' },
   { name: 'Servicios', value: 10, color: '#1a5032' },
