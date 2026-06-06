@@ -220,8 +220,6 @@ export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [authChecked, setAuthChecked] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [waStatus, setWaStatus] = useState('checking')
-
   useEffect(() => {
     setMounted(true)
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -230,19 +228,6 @@ export default function Dashboard() {
       setAuthChecked(true)
     })
   }, [router])
-
-  useEffect(() => {
-    if (!authChecked) return
-    const check = () => {
-      fetch('/api/status')
-        .then(r => r.json())
-        .then(d => setWaStatus(d.state === 'open' ? 'connected' : 'disconnected'))
-        .catch(() => setWaStatus('disconnected'))
-    }
-    check()
-    const t = setInterval(check, 12000)
-    return () => clearInterval(t)
-  }, [authChecked])
 
   if (!authChecked) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg }}>
@@ -256,84 +241,21 @@ export default function Dashboard() {
     || user?.email?.split('@')[0]
     || 'equipo'
 
-  const isConnected = waStatus === 'connected'
-
   return (
     <div style={{ display: 'flex', height: '100vh', background: C.bg, fontFamily: C.sans }}>
       <Sidebar />
       <main style={{ flex: 1, overflowY: 'auto' }}>
         <div style={{ padding: '36px 40px 48px', maxWidth: 1240 }}>
 
-          {/* ──── TOP ROW: Greeting + WA card ──── */}
-          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', marginBottom: 32 }}>
-
-            {/* Greeting */}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.text3, marginBottom: 10 }}>
-                Panel principal
-              </div>
-              <h1 style={{ margin: '0 0 8px', fontSize: 34, fontWeight: 800, letterSpacing: '-0.035em', color: C.text1, lineHeight: 1.1 }}>
-                ¡Hola, {firstName}! 👋
-              </h1>
-              <p style={{ margin: 0, fontSize: 14, color: C.text3 }}>{todayCap}</p>
+          {/* ──── GREETING ──── */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.text3, marginBottom: 10 }}>
+              Panel principal
             </div>
-
-            {/* WhatsApp status card */}
-            <div style={{ width: 272, flexShrink: 0, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: '20px 20px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: C.text1 }}>
-                  {isConnected ? 'WhatsApp activo' : 'Conecta tu WhatsApp'}
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <div style={{
-                    width: 7, height: 7, borderRadius: '50%',
-                    background: waStatus === 'checking' ? C.text3 : isConnected ? '#22c55e' : '#ef4444',
-                    boxShadow: isConnected ? '0 0 7px rgba(34,197,94,0.6)' : 'none',
-                    transition: 'background 0.3s',
-                  }} />
-                  <span style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.text3 }}>
-                    {waStatus === 'checking' ? 'verificando' : isConnected ? 'conectado' : 'no conectado'}
-                  </span>
-                </div>
-              </div>
-
-              <p style={{ margin: '0 0 14px', fontSize: 12, color: C.text3, lineHeight: 1.5 }}>
-                {isConnected
-                  ? 'Tu agente está activo y respondiendo mensajes automáticamente.'
-                  : 'Escaneá el QR con tu teléfono para activar el agente.'}
-              </p>
-
-              {!isConnected && (
-                <div style={{ background: C.elevated, border: `1px dashed ${C.border2}`, borderRadius: 10, height: 88, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 14 }}>
-                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                    <rect x="2" y="2" width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
-                    <rect x="4" y="4" width="6" height="6" fill={C.text3} rx="0.5"/>
-                    <rect x="16" y="2" width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
-                    <rect x="18" y="4" width="6" height="6" fill={C.text3} rx="0.5"/>
-                    <rect x="2" y="16" width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
-                    <rect x="4" y="18" width="6" height="6" fill={C.text3} rx="0.5"/>
-                    <rect x="16" y="16" width="4" height="4" fill={C.text3} rx="0.5"/>
-                    <rect x="22" y="16" width="4" height="4" fill={C.text3} rx="0.5"/>
-                    <rect x="16" y="22" width="4" height="4" fill={C.text3} rx="0.5"/>
-                    <rect x="22" y="22" width="4" height="4" fill={C.text3} rx="0.5"/>
-                  </svg>
-                  <span style={{ fontFamily: C.mono, fontSize: 9, color: C.text3, letterSpacing: '0.1em', textTransform: 'uppercase' }}>QR en conversaciones</span>
-                </div>
-              )}
-
-              {isConnected && (
-                <div style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: 10, padding: '10px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.5)' }} />
-                  <span style={{ fontFamily: C.mono, fontSize: 10, color: '#22c55e', letterSpacing: '0.08em' }}>AGENTE ACTIVO</span>
-                </div>
-              )}
-
-              <button
-                onClick={() => router.push('/conversaciones')}
-                style={{ width: '100%', background: 'rgba(160,255,121,0.07)', border: '1px solid rgba(160,255,121,0.18)', borderRadius: 9, padding: '8px 0', color: C.green, fontSize: 12, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>
-                {isConnected ? 'Ver conversaciones →' : 'Conectar ahora →'}
-              </button>
-            </div>
+            <h1 style={{ margin: '0 0 8px', fontSize: 34, fontWeight: 800, letterSpacing: '-0.035em', color: C.text1, lineHeight: 1.1 }}>
+              ¡Hola, {firstName}! 👋
+            </h1>
+            <p style={{ margin: 0, fontSize: 14, color: C.text3 }}>{todayCap}</p>
           </div>
 
           {/* ──── METRICS ──── */}
