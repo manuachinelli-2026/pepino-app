@@ -47,48 +47,80 @@ function formatTime(ts) {
 }
 
 function normalizeNumber(jid = '') {
-  return jid.replace(/@s\.whatsapp\.net$/, '').replace(/@lid$/, '').replace(/@g\.us$/, '').replace(/@.*$/, '')
+  const raw = jid.replace(/@.*$/, '').replace(/\D/g, '')
+  if (!raw) return jid
+  // Use last 10 digits to handle country-code format differences
+  // (e.g. 5491123290927 and 541123290927 both end in 1123290927)
+  return raw.slice(-10)
 }
 
 function isRealName(str) {
   return str && /[a-zA-ZÀ-ÿ\s]/.test(str) && str.length > 2
 }
 
-// Merge chat list: group by normalized phone number, pick best name & most recent
+function chatDisplayName(chat) {
+  const n = chat.pushName || chat.lastMessage?.pushName
+  if (isRealName(n) && n !== 'Você') return n
+  return null
+}
+
+// Merge chat list: group by normalized phone (last 10 digits), pick best name & most recent
 function mergeChats(chats) {
   const groups = {}
+
   for (const chat of chats) {
-    const num = normalizeNumber(chat.remoteJid)
-    if (!groups[num]) {
-      groups[num] = { chats: [], number: num }
+    // Skip WhatsApp broadcast/status chats
+    if (chat.remoteJid?.includes('@broadcast') || chat.remoteJid?.includes('status')) continue
+
+    const key = normalizeNumber(chat.remoteJid)
+    if (!key) continue
+    if (!groups[key]) groups[key] = { chats: [], number: key }
+    groups[key].chats.push(chat)
+  }
+
+  // Secondary merge: group LID chats with phone chats by push name
+  // (WhatsApp LID migration stores incoming as XXXX@lid and outgoing as phone@s.whatsapp.net)
+  const byName = {}
+  for (const [key, group] of Object.entries(groups)) {
+    const name = group.chats.map(c => chatDisplayName(c)).find(Boolean)
+    if (name) {
+      if (!byName[name]) byName[name] = []
+      byName[name].push(key)
     }
-    groups[num].chats.push(chat)
+  }
+  for (const keys of Object.values(byName)) {
+    if (keys.length < 2) continue
+    // Merge all groups with the same display name into the first one
+    const [primary, ...rest] = keys
+    for (const k of rest) {
+      groups[primary].chats.push(...groups[k].chats)
+      delete groups[k]
+    }
   }
 
   return Object.values(groups).map(({ chats, number }) => {
-    // Pick the chat with a real human name (not "Você"), or the most recent one
     const best = chats.find(c => isRealName(c.pushName) && c.pushName !== 'Você')
       ?? chats.find(c => isRealName(c.pushName))
       ?? chats[0]
 
-    // Most recent last message across all chats in group
     const allMsgs = chats.map(c => c.lastMessage).filter(Boolean)
     const lastMessage = allMsgs.sort((a, b) =>
       (b.messageTimestamp || 0) - (a.messageTimestamp || 0)
     )[0] ?? best.lastMessage
 
-    // Collect all JIDs for this number (to query all messages)
     const allJids = [...new Set(chats.map(c => c.remoteJid))]
-
-    // Sum unread counts
     const unreadCount = chats.reduce((sum, c) => sum + (c.unreadCount || 0), 0)
+
+    // Full phone number from the best JID (for display + profile pic API)
+    const fullNumber = best.remoteJid.replace(/@.*$/, '').replace(/\D/g, '') || number
 
     return {
       ...best,
       lastMessage,
       unreadCount,
-      allJids,      // used when fetching messages
-      number,
+      allJids,
+      number: fullNumber,     // displayed in UI and passed to profile-pic API
+      _key: number,           // internal dedup key (last 10 digits)
     }
   }).sort((a, b) =>
     (b.lastMessage?.messageTimestamp || 0) - (a.lastMessage?.messageTimestamp || 0)
@@ -415,12 +447,12 @@ export default function ConversacionesPage() {
                   {search ? 'Sin resultados.' : 'No hay conversaciones.'}
                 </div>
               ) : filteredChats.map(chat => {
-                const isSelected = selectedChat?.number === chat.number
+                const isSelected = selectedChat?._key === chat._key
                 const name = getChatName(chat)
                 const lastMsg = getMsgText(chat.lastMessage)
                 const fromMe = !!chat.lastMessage?.key?.fromMe
                 return (
-                  <div key={chat.number} onClick={() => setSelectedChat(chat)}
+                  <div key={chat._key || chat.number} onClick={() => setSelectedChat(chat)}
                     style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', cursor: 'pointer', background: isSelected ? 'var(--elevated)' : 'transparent', borderBottom: '1px solid var(--border)', transition: 'background 0.1s' }}
                     onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--elevated)' }}
                     onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
