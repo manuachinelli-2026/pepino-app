@@ -8,17 +8,17 @@ import Sidebar from '../../components/Sidebar'
 const AUTH_REDIRECT = '/login'
 
 const C = {
-  bg: '#0B0E0C',
-  panel: '#11150F',
-  elevated: '#161B12',
-  green: '#A0FF79',
-  text1: '#F4F7F2',
-  text2: '#B6C4B2',
-  text3: '#7E8C7C',
-  border: '#243026',
-  border2: '#324034',
-  mono: '"JetBrains Mono Variable", "JetBrains Mono", monospace',
-  sans: '"Funnel Sans Variable", "Funnel Sans", Inter, system-ui, sans-serif',
+  bg:     'var(--bg)',
+  panel:  'var(--panel)',
+  elevated: 'var(--elevated)',
+  green:  'var(--green)',
+  text1:  'var(--text-1)',
+  text2:  'var(--text-2)',
+  text3:  'var(--text-3)',
+  border: 'var(--border)',
+  border2: 'var(--border-2)',
+  mono:   'var(--mono)',
+  sans:   'var(--sans)',
 }
 
 const METRICS = [
@@ -61,11 +61,11 @@ const METRICS = [
 ]
 
 const DONUT = [
-  { name: 'Turnos', value: 42, color: '#A0FF79' },
-  { name: 'Precios', value: 27, color: '#5ec47a' },
-  { name: 'Horarios', value: 18, color: '#318c50' },
+  { name: 'Turnos',    value: 42, color: '#A0FF79' },
+  { name: 'Precios',   value: 27, color: '#5ec47a' },
+  { name: 'Horarios',  value: 18, color: '#318c50' },
   { name: 'Servicios', value: 10, color: '#1a5032' },
-  { name: 'Otros', value: 3, color: '#2d3d2e' },
+  { name: 'Otros',     value:  3, color: '#2d3d2e' },
 ]
 
 const OPPS = [
@@ -247,16 +247,16 @@ export default function Dashboard() {
               {!isConnected && (
                 <div style={{ background: C.elevated, border: `1px dashed ${C.border2}`, borderRadius: 10, height: 88, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 14 }}>
                   <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                    <rect x="2" y="2" width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
-                    <rect x="4" y="4" width="6" height="6" fill={C.text3} rx="0.5"/>
-                    <rect x="16" y="2" width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
-                    <rect x="18" y="4" width="6" height="6" fill={C.text3} rx="0.5"/>
-                    <rect x="2" y="16" width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
-                    <rect x="4" y="18" width="6" height="6" fill={C.text3} rx="0.5"/>
-                    <rect x="16" y="16" width="4" height="4" fill={C.text3} rx="0.5"/>
-                    <rect x="22" y="16" width="4" height="4" fill={C.text3} rx="0.5"/>
-                    <rect x="16" y="22" width="4" height="4" fill={C.text3} rx="0.5"/>
-                    <rect x="22" y="22" width="4" height="4" fill={C.text3} rx="0.5"/>
+                    <rect x="2"  y="2"  width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
+                    <rect x="4"  y="4"  width="6"  height="6"  fill={C.text3} rx="0.5"/>
+                    <rect x="16" y="2"  width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
+                    <rect x="18" y="4"  width="6"  height="6"  fill={C.text3} rx="0.5"/>
+                    <rect x="2"  y="16" width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
+                    <rect x="4"  y="18" width="6"  height="6"  fill={C.text3} rx="0.5"/>
+                    <rect x="16" y="16" width="4"  height="4"  fill={C.text3} rx="0.5"/>
+                    <rect x="22" y="16" width="4"  height="4"  fill={C.text3} rx="0.5"/>
+                    <rect x="16" y="22" width="4"  height="4"  fill={C.text3} rx="0.5"/>
+                    <rect x="22" y="22" width="4"  height="4"  fill={C.text3} rx="0.5"/>
                   </svg>
                   <span style={{ fontFamily: C.mono, fontSize: 9, color: C.text3, letterSpacing: '0.1em', textTransform: 'uppercase' }}>QR en conversaciones</span>
                 </div>
@@ -309,14 +309,11 @@ export default function Dashboard() {
                     <PieChart width={176} height={176}>
                       <Pie
                         data={DONUT}
-                        cx={88}
-                        cy={88}
-                        innerRadius={56}
-                        outerRadius={80}
+                        cx={88} cy={88}
+                        innerRadius={56} outerRadius={80}
                         paddingAngle={2}
                         dataKey="value"
-                        startAngle={90}
-                        endAngle={-270}
+                        startAngle={90} endAngle={-270}
                         strokeWidth={0}
                       >
                         {DONUT.map((e, i) => <Cell key={i} fill={e.color} stroke="none" />)}
@@ -346,11 +343,11 @@ export default function Dashboard() {
           </div>
 
           {/* BOTTOM BANNER */}
-          <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderLeft: '4px solid #A0FF79', borderRadius: 16, padding: '20px 28px 20px 24px', display: 'flex', alignItems: 'center', gap: 18 }}>
-            <div style={{ width: 46, height: 46, borderRadius: 13, background: 'rgba(160,255,121,0.08)', border: '1px solid rgba(160,255,121,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderLeft: '4px solid var(--green)', borderRadius: 16, padding: '20px 28px 20px 24px', display: 'flex', alignItems: 'center', gap: 18 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 13, background: 'var(--green-dim)', border: '1px solid var(--green-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 17V3" stroke="#A0FF79" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M4 9l6-6 6 6" stroke="#A0FF79" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M10 17V3" stroke="var(--green)" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M4 9l6-6 6 6" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
             <div style={{ flex: 1 }}>
