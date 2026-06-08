@@ -19,8 +19,6 @@ const STATUS_COLORS = {
   completado: { text: '#60A5FA',      bg: 'rgba(96,165,250,0.10)',    border: 'rgba(96,165,250,0.25)' },
 }
 const COL_TYPE_LABELS = { text: 'Texto', number: 'Número', date: 'Fecha', select: 'Selección' }
-const CUSTOM_COLS_KEY = 'pepino-contact-columns'
-const CUSTOM_VALS_KEY = 'pepino-contact-custom-values'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function getLabel(jid) {
@@ -550,26 +548,42 @@ export default function ContactosPage() {
   const [showColPanel, setShowColPanel] = useState(false)
   const colBtnRef = useRef(null)
 
-  // Custom columns — stored in localStorage
+  // Custom columns — stored in Supabase
   const [customCols, setCustomCols] = useState([])
   const [customVals, setCustomVals] = useState({}) // { phone: { colId: value } }
 
-  useEffect(() => {
-    const savedCols = localStorage.getItem(CUSTOM_COLS_KEY)
-    const savedVals = localStorage.getItem(CUSTOM_VALS_KEY)
-    if (savedCols) { try { setCustomCols(JSON.parse(savedCols)) } catch {} }
-    if (savedVals) { try { setCustomVals(JSON.parse(savedVals)) } catch {} }
+  const loadCustomCols = useCallback(async () => {
+    const { data } = await supabase.from('contact_columns').select('*').order('position')
+    if (data) setCustomCols(data)
   }, [])
 
-  useEffect(() => { localStorage.setItem(CUSTOM_COLS_KEY, JSON.stringify(customCols)) }, [customCols])
-  useEffect(() => { localStorage.setItem(CUSTOM_VALS_KEY, JSON.stringify(customVals)) }, [customVals])
-
-  const addCustomCol = useCallback((label, type, options) => {
-    const id = 'col_' + Math.random().toString(36).slice(2, 9)
-    setCustomCols(prev => [...prev, { id, label, type, options }])
+  const loadCustomVals = useCallback(async () => {
+    const { data } = await supabase.from('contact_field_values').select('*')
+    if (data) {
+      const map = {}
+      for (const row of data) {
+        if (!map[row.phone]) map[row.phone] = {}
+        map[row.phone][row.column_id] = row.value
+      }
+      setCustomVals(map)
+    }
   }, [])
 
-  const deleteCustomCol = useCallback((id) => {
+  useEffect(() => { loadCustomCols(); loadCustomVals() }, [loadCustomCols, loadCustomVals])
+
+  const addCustomCol = useCallback(async (label, type, options) => {
+    const id   = 'col_' + Math.random().toString(36).slice(2, 9)
+    const pos  = customCols.length
+    const { data, error } = await supabase
+      .from('contact_columns')
+      .insert({ id, label, type, options, position: pos })
+      .select()
+      .single()
+    if (!error && data) setCustomCols(prev => [...prev, data])
+  }, [customCols.length])
+
+  const deleteCustomCol = useCallback(async (id) => {
+    await supabase.from('contact_columns').delete().eq('id', id)
     setCustomCols(prev => prev.filter(c => c.id !== id))
     setCustomVals(prev => {
       const next = { ...prev }
@@ -583,8 +597,13 @@ export default function ContactosPage() {
     })
   }, [])
 
-  const saveCustomVal = useCallback((phone, colId, value) => {
+  const saveCustomVal = useCallback(async (phone, colId, value) => {
+    // Optimistic update
     setCustomVals(prev => ({ ...prev, [phone]: { ...(prev[phone] || {}), [colId]: value } }))
+    await supabase.from('contact_field_values').upsert(
+      { phone, column_id: colId, value, updated_at: new Date().toISOString() },
+      { onConflict: 'phone,column_id' }
+    )
   }, [])
 
   // Auth
