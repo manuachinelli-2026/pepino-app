@@ -7,19 +7,19 @@ import Sidebar from '../../components/Sidebar'
 const AUTH_REDIRECT = '/login'
 
 const C = {
-  bg: '#0B0E0C',
-  panel: '#11150F',
-  elevated: '#161B12',
-  green: '#A0FF79',
-  greenDim: 'rgba(160,255,121,0.10)',
-  greenBorder: 'rgba(160,255,121,0.2)',
-  text1: '#F4F7F2',
-  text2: '#B6C4B2',
-  text3: '#7E8C7C',
-  border: '#243026',
-  border2: '#324034',
-  mono: '"JetBrains Mono Variable", "JetBrains Mono", monospace',
-  sans: '"Funnel Sans Variable", "Funnel Sans", Inter, system-ui, sans-serif',
+  bg:          'var(--bg)',
+  panel:       'var(--panel)',
+  elevated:    'var(--elevated)',
+  green:       'var(--green)',
+  greenDim:    'var(--green-dim)',
+  greenBorder: 'var(--green-border)',
+  text1:       'var(--text-1)',
+  text2:       'var(--text-2)',
+  text3:       'var(--text-3)',
+  border:      'var(--border)',
+  border2:     'var(--border-2)',
+  mono:        'var(--mono)',
+  sans:        'var(--sans)',
 }
 
 const DAYS = [
@@ -137,7 +137,6 @@ export default function AgendaPage() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      // Upsert disponibilidad (7 filas, una por día)
       const { error: dispError } = await supabase
         .from('disponibilidad')
         .upsert(
@@ -152,7 +151,6 @@ export default function AgendaPage() {
         )
       if (dispError) throw dispError
 
-      // Servicios: borrar los existentes y reinsertar
       const { error: delError } = await supabase
         .from('servicios')
         .delete()
@@ -271,7 +269,7 @@ export default function AgendaPage() {
                       display: 'flex', alignItems: 'center', gap: 16,
                       padding: '14px 20px',
                       borderBottom: isLast ? 'none' : `1px solid ${C.border}`,
-                      background: config.activo ? 'transparent' : 'rgba(0,0,0,0.12)',
+                      background: config.activo ? 'transparent' : 'rgba(0,0,0,0.06)',
                       transition: 'background 0.15s',
                     }}
                   >
@@ -380,9 +378,7 @@ export default function AgendaPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <input
                         type="number"
-                        min="5"
-                        max="480"
-                        step="5"
+                        min="5" max="480" step="5"
                         value={s.duracion_minutos}
                         onChange={e => updateServicio(s._key, 'duracion_minutos', e.target.value)}
                         style={{ ...inputStyle, flex: 'none', width: 70, textAlign: 'center' }}
@@ -402,10 +398,10 @@ export default function AgendaPage() {
             </div>
           </section>
 
-          {/* SQL reminder card */}
+          {/* Endpoint info */}
           <div style={{ background: C.elevated, border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 20px' }}>
             <div style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.text3, marginBottom: 8 }}>Endpoint disponible para el agente</div>
-            <div style={{ fontFamily: C.mono, fontSize: 12, color: C.green, marginBottom: 6 }}>GET /api/disponibilidad?fecha=YYYY-MM-DD&servicio_id=...&user_id=...</div>
+            <div style={{ fontFamily: C.mono, fontSize: 12, color: C.green, marginBottom: 6 }}>GET /api/disponibilidad?fecha=YYYY-MM-DD&amp;servicio_id=...&amp;user_id=...</div>
             <div style={{ fontSize: 12, color: C.text3, lineHeight: 1.6 }}>
               Devuelve los horarios disponibles considerando tu agenda configurada, los turnos ya agendados y la duración del servicio.
             </div>
