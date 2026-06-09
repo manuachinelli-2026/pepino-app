@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
-import Sidebar from '@/components/Sidebar'
+import { supabase } from '../../lib/supabase'
+import Sidebar from '../../components/Sidebar'
 
 export default function ConfiguracionPage() {
   const [user, setUser]       = useState(null)
