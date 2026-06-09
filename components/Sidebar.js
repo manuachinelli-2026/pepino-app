@@ -11,6 +11,7 @@ const NAV = [
   { label: 'Reservas',       href: '/reservas',       icon: 'calendar' },
   { label: 'Agenda',         href: '/agenda',         icon: 'clock'    },
   { label: 'Mis Agentes',    href: '/agentes',        icon: 'bot'      },
+  { label: 'Configuración',  href: '/configuracion',  icon: 'settings' },
 ]
 
 function NavIcon({ name, size = 14 }) {
