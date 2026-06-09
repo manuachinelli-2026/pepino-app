@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
-  'https://zdyaeyuertcvskvwpdfe.supabase.co',
-  'sb_publishable_auL6ZSGewgvs1Mn94GmFSA_T-FfYXz6'
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
 // GET /api/reservas?fecha=YYYY-MM-DD&user_id=xxx
