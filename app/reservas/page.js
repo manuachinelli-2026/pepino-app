@@ -498,16 +498,25 @@ export default function ReservasPage() {
 
                     {/* Events */}
                     {dayReservas.map(r => {
-                      const [hh, mm] = (r.hora || '00:00').split(':').map(Number)
-                      const top = minToY(hh * 60 + (mm || 0))
+                      const horaStr = (r.hora || '00:00').slice(0, 5)
+                      const [hh, mm] = horaStr.split(':').map(Number)
+                      const startMin = hh * 60 + (mm || 0)
+                      const durMin = r.duracion_minutos || 60
+                      const top = minToY(startMin)
+                      const height = Math.max(HOUR_H - 4, minToY(durMin) - 2)
                       const cfg = STATUS_CFG[r.estado] || STATUS_CFG.pendiente
+                      const tel = r.cliente_telefono ? r.cliente_telefono.replace('@s.whatsapp.net', '').replace(/(\d{2})(\d{2})(\d{4})(\d{4})/, '+$1 $2 $3-$4') : null
                       return (
                         <div key={r.id}
                           onMouseDown={e => e.stopPropagation()}
-                          style={{ position: 'absolute', top: top + 1, left: 3, right: 3, height: HOUR_H - 4, borderRadius: 8, background: cfg.bg, border: `1.5px solid ${cfg.border}`, padding: '5px 8px', overflow: 'hidden', cursor: 'default', zIndex: 5 }}>
-                          <div style={{ fontWeight: 700, fontSize: 11.5, color: cfg.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.cliente_nombre}</div>
-                          <div style={{ fontSize: 10.5, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 1 }}>{r.servicio_nombre}</div>
-                          <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>{(r.hora || '').slice(0,5)}</div>
+                          style={{ position: 'absolute', top: top + 1, left: 3, right: 3, height, borderRadius: 8, background: cfg.bg, border: `1.5px solid ${cfg.border}`, padding: '6px 8px', overflow: 'hidden', cursor: 'default', zIndex: 5, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 4 }}>
+                            <div style={{ fontWeight: 700, fontSize: 11.5, color: cfg.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.cliente_nombre}</div>
+                            <div style={{ fontSize: 9, fontWeight: 700, color: cfg.text, opacity: 0.7, flexShrink: 0 }}>{horaStr}</div>
+                          </div>
+                          {r.servicio_nombre && <div style={{ fontSize: 10.5, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.servicio_nombre}</div>}
+                          {tel && height > HOUR_H && <div style={{ fontSize: 10, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tel}</div>}
+                          {r.duracion_minutos && height > HOUR_H && <div style={{ fontSize: 9.5, color: 'var(--text-3)' }}>{r.duracion_minutos} min</div>}
                         </div>
                       )
                     })}
