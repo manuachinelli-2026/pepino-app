@@ -13,10 +13,7 @@ export default function RootLayout({ children }) {
       <head>
         {/* Leer tema antes de render para evitar flash */}
         <script dangerouslySetInnerHTML={{ __html: `
-          (function(){
-            var t = localStorage.getItem('pepino-theme') || 'light';
-            document.documentElement.setAttribute('data-theme', t);
-          })();
+          document.documentElement.setAttribute('data-theme', 'light');
         ` }} />
       </head>
       <body style={{

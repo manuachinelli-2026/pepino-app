@@ -117,8 +117,7 @@ export default function Sidebar() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
     })
-    const saved = localStorage.getItem('pepino-theme') || 'light'
-    setTheme(saved)
+    localStorage.removeItem('pepino-theme')
   }, [])
 
   // Cerrar al click afuera
@@ -136,7 +135,6 @@ export default function Sidebar() {
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark'
     setTheme(next)
-    localStorage.setItem('pepino-theme', next)
     document.documentElement.setAttribute('data-theme', next)
   }
 
