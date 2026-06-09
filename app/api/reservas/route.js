@@ -5,14 +5,14 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
-// GET /api/reservas?fecha=YYYY-MM-DD&user_id=xxx
+// GET /api/turnos?fecha=YYYY-MM-DD&user_id=xxx
 // Returns all reservations for a given date (so n8n can verify slots)
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const fecha   = searchParams.get('fecha')
   const user_id = searchParams.get('user_id')
 
-  let query = supabase.from('reservas').select('*').order('hora')
+  let query = supabase.from('turnos').select('*').order('hora')
   if (fecha)   query = query.eq('fecha', fecha)
   if (user_id) query = query.eq('user_id', user_id)
 
@@ -21,8 +21,8 @@ export async function GET(request) {
   return Response.json(data ?? [])
 }
 
-// POST /api/reservas
-// Body: { cliente_nombre, cliente_telefono?, servicio, fecha, hora, estado?, user_id?, notas? }
+// POST /api/turnos
+// Body: { cliente_nombre, cliente_telefono?, servicio_nombre, fecha, hora, estado?, user_id?, notas? }
 export async function POST(request) {
   let body
   try {
@@ -31,10 +31,10 @@ export async function POST(request) {
     return Response.json({ error: 'Body JSON inválido' }, { status: 400 })
   }
 
-  const { cliente_nombre, servicio, fecha, hora } = body
-  if (!cliente_nombre || !servicio || !fecha || !hora) {
+  const { cliente_nombre, servicio_nombre, fecha, hora } = body
+  if (!cliente_nombre || !servicio_nombre || !fecha || !hora) {
     return Response.json(
-      { error: 'Faltan campos requeridos: cliente_nombre, servicio, fecha, hora' },
+      { error: 'Faltan campos requeridos: cliente_nombre, servicio_nombre, fecha, hora' },
       { status: 400 }
     )
   }
@@ -52,7 +52,7 @@ export async function POST(request) {
   const record = {
     cliente_nombre: String(cliente_nombre).trim(),
     cliente_telefono: body.cliente_telefono ? String(body.cliente_telefono).trim() : null,
-    servicio: String(servicio).trim(),
+    servicio_nombre: String(servicio_nombre).trim(),
     fecha,
     hora,
     estado: body.estado || 'pendiente',
@@ -60,7 +60,7 @@ export async function POST(request) {
   if (body.user_id)  record.user_id = body.user_id
   if (body.notas)    record.notas   = String(body.notas).trim()
 
-  const { data, error } = await supabase.from('reservas').insert([record]).select().single()
+  const { data, error } = await supabase.from('turnos').insert([record]).select().single()
   if (error) return Response.json({ error: error.message }, { status: 500 })
 
   return Response.json(data, { status: 201 })

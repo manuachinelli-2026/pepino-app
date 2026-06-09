@@ -54,7 +54,7 @@ const nowTop = () => {
 // ── Modal: nueva reserva ───────────────────────────────────────────────────
 function Modal({ initial, onClose, onSuccess }) {
   const [form, setForm] = useState({
-    cliente_nombre: '', cliente_telefono: '', servicio: '', estado: 'pendiente',
+    cliente_nombre: '', cliente_telefono: '', servicio_nombre: '', estado: 'pendiente',
     fecha: initial.fecha || '', hora: initial.hora || '',
   })
   const [loading, setLoading] = useState(false)
@@ -76,7 +76,7 @@ function Modal({ initial, onClose, onSuccess }) {
 
   const submit = async e => {
     e.preventDefault(); setError(''); setLoading(true)
-    const { error: err } = await supabase.from('reservas').insert([form])
+    const { error: err } = await supabase.from('turnos').insert([form])
     setLoading(false)
     if (err) { setError(err.message); return }
     onSuccess(); onClose()
@@ -115,7 +115,7 @@ function Modal({ initial, onClose, onSuccess }) {
 
           <div>
             <label style={lbl}>Servicio</label>
-            <select value={form.servicio} onChange={e => set('servicio', e.target.value)} required style={{ ...inp, cursor: 'pointer' }}>
+            <select value={form.servicio_nombre} onChange={e => set('servicio_nombre', e.target.value)} required style={{ ...inp, cursor: 'pointer' }}>
               <option value="">Seleccionar servicio...</option>
               {SERVICIOS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -302,7 +302,7 @@ export default function ReservasPage() {
 
   const loadReservas = useCallback(async () => {
     if (!authChecked) return
-    const { data } = await supabase.from('reservas').select('*').gte('fecha', weekStart).lte('fecha', weekEnd)
+    const { data } = await supabase.from('turnos').select('*').gte('fecha', weekStart).lte('fecha', weekEnd)
     setReservas(data || [])
   }, [authChecked, weekStart, weekEnd])
 
@@ -310,8 +310,8 @@ export default function ReservasPage() {
 
   useEffect(() => {
     if (!authChecked) return
-    const ch = supabase.channel('reservas-cal')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservas' }, loadReservas)
+    const ch = supabase.channel('turnos-cal')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'turnos' }, loadReservas)
       .subscribe()
     return () => supabase.removeChannel(ch)
   }, [authChecked, loadReservas])
@@ -506,7 +506,7 @@ export default function ReservasPage() {
                           onMouseDown={e => e.stopPropagation()}
                           style={{ position: 'absolute', top: top + 1, left: 3, right: 3, height: HOUR_H - 4, borderRadius: 8, background: cfg.bg, border: `1.5px solid ${cfg.border}`, padding: '5px 8px', overflow: 'hidden', cursor: 'default', zIndex: 5 }}>
                           <div style={{ fontWeight: 700, fontSize: 11.5, color: cfg.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.cliente_nombre}</div>
-                          <div style={{ fontSize: 10.5, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 1 }}>{r.servicio}</div>
+                          <div style={{ fontSize: 10.5, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 1 }}>{r.servicio_nombre}</div>
                           <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>{(r.hora || '').slice(0,5)}</div>
                         </div>
                       )

@@ -37,9 +37,10 @@ export async function GET(request) {
       .single(),
 
     supabase
-      .from('reservas')
+      .from('turnos')
       .select('hora')
       .eq('fecha', fecha)
+      .eq('user_id', user_id)
       .neq('estado', 'cancelado'),
   ])
 

@@ -47,7 +47,7 @@ function formatFecha(s) {
 function formatReservaShort(r) {
   if (!r) return null
   const fecha = new Date(r.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })
-  return `${fecha}${r.servicio ? ' · ' + r.servicio : ''}`
+  return `${fecha}${r.servicio_nombre ? ' · ' + r.servicio_nombre : ''}`
 }
 function downloadTemplate() {
   const rows = [
@@ -500,7 +500,7 @@ function ContactDrawer({ contact, customCols, customVals, onSaveCustomVal, onClo
                         </div>
                         <div style={{ flex: 1, background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 13px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', lineHeight: 1.2 }}>{r.servicio || 'Servicio'}</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', lineHeight: 1.2 }}>{r.servicio_nombre || 'Servicio'}</span>
                             <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 99, background: sc.bg, border: `1px solid ${sc.border}`, color: sc.text, fontFamily: 'var(--mono)', flexShrink: 0 }}>{r.estado}</span>
                           </div>
                           <div style={{ display: 'flex', gap: 12 }}>
@@ -619,7 +619,7 @@ export default function ContactosPage() {
     const [evRes, chatsRes, resRes, extrasRes] = await Promise.allSettled([
       fetch('/api/contacts').then(r => r.json()),
       fetch('/api/chats').then(r => r.json()),
-      supabase.from('reservas').select('*').order('fecha', { ascending: false }),
+      supabase.from('turnos').select('*').order('fecha', { ascending: false }),
       supabase.from('contactos').select('*'),
     ])
     if (evRes.status === 'fulfilled')    setEvContacts(Array.isArray(evRes.value) ? evRes.value : [])
