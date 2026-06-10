@@ -6,6 +6,24 @@ import Sidebar from '../../components/Sidebar'
 
 const AUTH_REDIRECT = '/login'
 
+function PepinoWatermark({ size = 160 }) {
+  const cx = size / 2, cy = size / 2, r = size / 2 * 0.96
+  const seeds = Array.from({ length: 11 }, (_, i) => {
+    const a = (i * (360 / 11) - 90) * (Math.PI / 180)
+    return { x: cx + r * 0.44 * Math.cos(a), y: cy + r * 0.44 * Math.sin(a) }
+  })
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none">
+      <circle cx={cx} cy={cy} r={r}        fill="var(--green)"/>
+      <circle cx={cx} cy={cy} r={r * 0.83} fill="var(--panel)"/>
+      <circle cx={cx} cy={cy} r={r * 0.74} fill="var(--green)"/>
+      <circle cx={cx} cy={cy} r={r * 0.59} fill="var(--panel)"/>
+      {seeds.map((s, i) => <circle key={i} cx={s.x} cy={s.y} r={r * 0.09} fill="var(--green)"/>)}
+      <circle cx={cx} cy={cy} r={r * 0.11} fill="var(--green)"/>
+    </svg>
+  )
+}
+
 function Icon({ name, color = 'currentColor', size = 18 }) {
   const s = { stroke: color, fill: 'none', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
   const icons = {
@@ -286,95 +304,90 @@ export default function Dashboard() {
       <main style={{ flex: 1, overflowY: 'auto' }}>
         <div style={{ padding: '36px 40px 56px', maxWidth: 1200 }}>
 
-          {/* ── TOP ROW ─────────────────────────────────────── */}
-          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', marginBottom: 36 }}>
+          {/* ── HERO HEADER ─────────────────────────────────── */}
+          <div style={{
+            background: 'var(--panel)',
+            border: '1px solid var(--border)',
+            borderRadius: 20,
+            padding: '40px 48px',
+            marginBottom: 20,
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+          }}>
+            {/* Línea degradada superior — firma Pepino */}
+            <div style={{
+              position: 'absolute', top: 0, left: '6%', right: '6%', height: 1,
+              background: 'linear-gradient(90deg, transparent, var(--green-border), transparent)',
+            }} />
 
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 10 }}>
-                Panel principal
-              </div>
-              <h1 style={{ margin: '0 0 8px', fontSize: 34, fontWeight: 800, letterSpacing: '-0.035em', color: 'var(--text-1)', lineHeight: 1.1 }}>
-                ¡Hola, {firstName}! 👋
-              </h1>
-              <p style={{ margin: 0, fontSize: 14, color: 'var(--text-3)' }}>{todayCap}</p>
+            {/* Halo verde — como en la landing */}
+            <div style={{
+              position: 'absolute', right: -80, top: -80,
+              width: 340, height: 340,
+              background: 'radial-gradient(circle, rgba(43,138,62,0.07) 0%, transparent 65%)',
+              pointerEvents: 'none',
+            }} />
+
+            {/* Marca Pepino decorativa — watermark */}
+            <div style={{
+              position: 'absolute', right: 48, top: '50%',
+              transform: 'translateY(-50%)',
+              opacity: 0.065, pointerEvents: 'none',
+              userSelect: 'none',
+            }}>
+              <PepinoWatermark size={156} />
             </div>
 
-            {/* WhatsApp card */}
-            <div style={{
-              width: 272, flexShrink: 0,
-              background: 'var(--panel)', border: '1px solid var(--border)',
-              borderRadius: 16, padding: '20px 20px 16px',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text-1)' }}>
-                  {isConnected ? 'WhatsApp activo' : 'Conectá tu WhatsApp'}
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <div style={{
-                    width: 7, height: 7, borderRadius: '50%',
-                    background: waStatus === 'checking' ? 'var(--text-3)' : isConnected ? '#16A34A' : '#DC2626',
-                    boxShadow: isConnected ? '0 0 7px rgba(22,163,74,0.5)' : 'none',
-                    transition: 'background 0.3s',
-                  }} />
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-3)' }}>
-                    {waStatus === 'checking' ? 'verificando' : isConnected ? 'conectado' : 'no conectado'}
-                  </span>
-                </div>
+            {/* Contenido */}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {/* Eyebrow row con status inline */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18,
+                fontFamily: 'var(--mono)', fontSize: 10,
+                letterSpacing: '0.18em', textTransform: 'uppercase',
+              }}>
+                <span style={{ color: 'var(--green)' }}>Panel principal</span>
+
+                {waStatus !== 'checking' && (
+                  <>
+                    <span style={{ color: 'var(--border-2)', fontWeight: 300 }}>·</span>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      color: isConnected ? '#16A34A' : 'var(--text-3)',
+                    }}>
+                      <span style={{
+                        width: 6, height: 6, borderRadius: '50%', display: 'inline-block',
+                        background: isConnected ? '#16A34A' : 'var(--border-2)',
+                        boxShadow: isConnected ? '0 0 6px rgba(22,163,74,0.55)' : 'none',
+                      }} />
+                      {isConnected ? 'Agente activo' : 'WhatsApp desconectado'}
+                    </span>
+                  </>
+                )}
               </div>
-              <p style={{ margin: '0 0 14px', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.55 }}>
-                {isConnected
-                  ? 'Tu agente está activo y respondiendo mensajes automáticamente.'
-                  : 'Escaneá el QR con tu teléfono para activar el agente.'}
+
+              {/* Saludo principal */}
+              <h1 style={{
+                margin: '0 0 10px',
+                fontSize: 'clamp(30px, 3vw, 46px)',
+                fontWeight: 800,
+                letterSpacing: '-0.04em',
+                lineHeight: 1.05,
+                color: 'var(--text-1)',
+              }}>
+                ¡Hola,{' '}
+                <em style={{ fontStyle: 'normal', color: 'var(--green)' }}>{firstName}</em>
+                {' '}👋
+              </h1>
+
+              {/* Fecha */}
+              <p style={{
+                margin: 0, fontSize: 13, color: 'var(--text-3)',
+                fontFamily: 'var(--mono)', letterSpacing: '0.04em',
+              }}>
+                {todayCap}
               </p>
-
-              {!isConnected && (
-                <div style={{
-                  background: 'var(--elevated)', border: '1px dashed var(--border-2)',
-                  borderRadius: 10, height: 88, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 14,
-                }}>
-                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                    <rect x="2"  y="2"  width="10" height="10" rx="1" stroke="var(--text-3)" strokeWidth="1.5"/>
-                    <rect x="4"  y="4"  width="6"  height="6"  fill="var(--text-3)" rx="0.5"/>
-                    <rect x="16" y="2"  width="10" height="10" rx="1" stroke="var(--text-3)" strokeWidth="1.5"/>
-                    <rect x="18" y="4"  width="6"  height="6"  fill="var(--text-3)" rx="0.5"/>
-                    <rect x="2"  y="16" width="10" height="10" rx="1" stroke="var(--text-3)" strokeWidth="1.5"/>
-                    <rect x="4"  y="18" width="6"  height="6"  fill="var(--text-3)" rx="0.5"/>
-                    <rect x="16" y="16" width="4"  height="4"  fill="var(--text-3)" rx="0.5"/>
-                    <rect x="22" y="16" width="4"  height="4"  fill="var(--text-3)" rx="0.5"/>
-                    <rect x="16" y="22" width="4"  height="4"  fill="var(--text-3)" rx="0.5"/>
-                    <rect x="22" y="22" width="4"  height="4"  fill="var(--text-3)" rx="0.5"/>
-                  </svg>
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--text-3)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                    QR en conversaciones
-                  </span>
-                </div>
-              )}
-
-              {isConnected && (
-                <div style={{
-                  background: 'rgba(22,163,74,0.06)', border: '1px solid rgba(22,163,74,0.18)',
-                  borderRadius: 10, padding: '10px 14px', marginBottom: 14,
-                  display: 'flex', alignItems: 'center', gap: 8,
-                }}>
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#16A34A', boxShadow: '0 0 6px rgba(22,163,74,0.4)' }} />
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: '#16A34A', letterSpacing: '0.08em' }}>
-                    AGENTE ACTIVO
-                  </span>
-                </div>
-              )}
-
-              <button
-                onClick={() => router.push('/conversaciones')}
-                style={{
-                  width: '100%', background: 'var(--green-dim)', border: '1px solid var(--green-border)',
-                  borderRadius: 9, padding: '9px 0',
-                  color: 'var(--green)', fontSize: 12, fontWeight: 600,
-                  fontFamily: 'inherit', cursor: 'pointer',
-                }}>
-                {isConnected ? 'Ver conversaciones →' : 'Conectar ahora →'}
-              </button>
             </div>
           </div>
 
