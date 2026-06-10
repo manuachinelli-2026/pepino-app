@@ -1,175 +1,169 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { PieChart, Pie, Cell } from 'recharts'
 import { supabase } from '../../lib/supabase'
 import Sidebar from '../../components/Sidebar'
 
 const AUTH_REDIRECT = '/login'
 
-const C = {
-  bg:     'var(--bg)',
-  panel:  'var(--panel)',
-  elevated: 'var(--elevated)',
-  green:  'var(--green)',
-  text1:  'var(--text-1)',
-  text2:  'var(--text-2)',
-  text3:  'var(--text-3)',
-  border: 'var(--border)',
-  border2: 'var(--border-2)',
-  mono:   'var(--mono)',
-  sans:   'var(--sans)',
-}
-
-const METRICS = [
-  {
-    label: 'Conversaciones',
-    value: '42',
-    change: '+18%',
-    icon: 'chat',
-    iconBg: 'rgba(160,255,121,0.1)',
-    iconBorder: 'rgba(160,255,121,0.15)',
-    iconColor: '#A0FF79',
-  },
-  {
-    label: 'Turnos agendados',
-    value: '18',
-    change: '+12%',
-    icon: 'calendar',
-    iconBg: 'rgba(167,139,250,0.1)',
-    iconBorder: 'rgba(167,139,250,0.15)',
-    iconColor: '#A78BFA',
-  },
-  {
-    label: 'Clientes nuevos',
-    value: '8',
-    change: '+33%',
-    icon: 'person',
-    iconBg: 'rgba(96,165,250,0.1)',
-    iconBorder: 'rgba(96,165,250,0.15)',
-    iconColor: '#60A5FA',
-  },
-  {
-    label: 'Tasa de conversión',
-    value: '42%',
-    change: '+6%',
-    icon: 'arrowup',
-    iconBg: 'rgba(251,146,60,0.1)',
-    iconBorder: 'rgba(251,146,60,0.15)',
-    iconColor: '#FB923C',
-  },
-]
-
-const DONUT = [
-  { name: 'Turnos',    value: 42, color: '#A0FF79' },
-  { name: 'Precios',   value: 27, color: '#5ec47a' },
-  { name: 'Horarios',  value: 18, color: '#318c50' },
-  { name: 'Servicios', value: 10, color: '#1a5032' },
-  { name: 'Otros',     value:  3, color: '#2d3d2e' },
-]
-
-const OPPS = [
-  {
-    icon: 'clock',
-    iconBg: 'rgba(160,255,121,0.1)',
-    iconBorder: 'rgba(160,255,121,0.15)',
-    iconColor: '#A0FF79',
-    title: 'Definí tu horario de atención',
-    desc: '3 consultas no pudieron agendarse por falta de horario configurado',
-  },
-  {
-    icon: 'star',
-    iconBg: 'rgba(167,139,250,0.1)',
-    iconBorder: 'rgba(167,139,250,0.15)',
-    iconColor: '#A78BFA',
-    title: 'Responde las reseñas pendientes',
-    desc: '5 reseñas sin respuesta en Google My Business',
-  },
-  {
-    icon: 'users',
-    iconBg: 'rgba(96,165,250,0.1)',
-    iconBorder: 'rgba(96,165,250,0.15)',
-    iconColor: '#60A5FA',
-    title: 'Activá campañas de reenganche',
-    desc: '12 clientes sin visitar hace más de 30 días',
-  },
-  {
-    icon: 'settings',
-    iconBg: 'rgba(251,146,60,0.1)',
-    iconBorder: 'rgba(251,146,60,0.15)',
-    iconColor: '#FB923C',
-    title: 'Completá tu perfil de servicios',
-    desc: 'Tu agente no puede cotizar sin precios cargados',
-  },
-]
-
-function Icon({ name, color, size = 18 }) {
+function Icon({ name, color = 'currentColor', size = 18 }) {
   const s = { stroke: color, fill: 'none', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }
   const icons = {
-    chat:     <path d="M2 3a1 1 0 011-1h12a1 1 0 011 1v7a1 1 0 01-1 1h-5l-4 3V11H3a1 1 0 01-1-1V3z" {...s}/>,
     calendar: <><rect x="2" y="3" width="14" height="13" rx="2" {...s}/><path d="M2 8h14M6 1v4M12 1v4" {...s}/></>,
-    person:   <><circle cx="9" cy="6" r="3.5" {...s}/><path d="M2 17a7 7 0 0114 0" {...s}/></>,
-    arrowup:  <><path d="M9 16V3" {...s}/><path d="M4 8l5-5 5 5" {...s}/></>,
     clock:    <><circle cx="9" cy="9" r="7" {...s}/><path d="M9 5v4l3 2" {...s}/></>,
-    star:     <path d="M9 2l2.2 6h6.3l-5.1 3.7 2 6.1L9 14.1l-5.4 3.7 2-6.1L.5 8h6.3z" {...s}/>,
-    users:    <><circle cx="7" cy="6" r="3" {...s}/><path d="M1 16a6.5 4.5 0 0112 0" {...s}/><circle cx="13.5" cy="5.5" r="2.5" {...s}/><path d="M11.5 15.5a6 4 0 016 0" {...s}/></>,
-    settings: <><circle cx="9" cy="9" r="3" {...s}/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4 4l1.5 1.5M12.5 12.5l1.5 1.5M4 14l1.5-1.5M12.5 5.5l1.5-1.5" {...s}/></>,
-    chevron:  <path d="M7 5l4 4-4 4" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>,
+    person:   <><circle cx="9" cy="6" r="3.5" {...s}/><path d="M2 17a7 7 0 0114 0" {...s}/></>,
+    settings: <><circle cx="9" cy="9" r="3" {...s}/><path d="M9 2v2M9 16v2M2 9h2M16 9h2M4.1 4.1l1.4 1.4M13.5 13.5l1.4 1.4M4.1 13.9l1.4-1.4M13.5 4.5l1.4-1.4" {...s}/></>,
+    alert:    <><path d="M9 2L16.5 15H1.5z" {...s}/><path d="M9 8v3" stroke={color} strokeWidth="1.8" strokeLinecap="round" fill="none"/><circle cx="9" cy="13" r="0.5" fill={color} stroke="none"/></>,
+    check:    <path d="M2 9l5 5 9-9" {...s}/>,
+    chevron:  <path d="M6 4l5 5-5 5" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>,
   }
+  return <svg width={size} height={size} viewBox="0 0 18 18" fill="none">{icons[name] || null}</svg>
+}
+
+function StatusBadge({ estado }) {
+  const map = {
+    confirmado: { dot: '#16A34A', bg: 'rgba(22,163,74,0.09)',  border: 'rgba(22,163,74,0.2)',  label: 'Confirmado' },
+    pendiente:  { dot: '#D97706', bg: 'rgba(217,119,6,0.09)',  border: 'rgba(217,119,6,0.2)',  label: 'Pendiente'  },
+    cancelado:  { dot: '#DC2626', bg: 'rgba(220,38,38,0.09)',  border: 'rgba(220,38,38,0.2)',  label: 'Cancelado'  },
+  }
+  const c = map[estado] ?? map.pendiente
   return (
-    <svg width={size} height={size} viewBox="0 0 18 18" fill="none">
-      {icons[name] || null}
-    </svg>
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase',
+      color: c.dot, background: c.bg, border: `1px solid ${c.border}`,
+      padding: '3px 8px', borderRadius: 99, whiteSpace: 'nowrap',
+    }}>
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: c.dot, display: 'inline-block', flexShrink: 0 }} />
+      {c.label}
+    </span>
   )
 }
 
-function MetricCard({ label, value, change, icon, iconBg, iconBorder, iconColor }) {
+function formatDate(fechaStr) {
+  const todayStr  = new Date().toISOString().split('T')[0]
+  const tmrwStr   = new Date(Date.now() + 86400000).toISOString().split('T')[0]
+  if (fechaStr === todayStr) return 'Hoy'
+  if (fechaStr === tmrwStr)  return 'Mañana'
+  const [y, m, d] = fechaStr.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
+function StatCard({ label, value, loading, icon, iconColor, iconBg, iconBorder, sublabel }) {
   return (
-    <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: '24px 24px 20px' }}>
-      <div style={{ width: 40, height: 40, background: iconBg, border: `1px solid ${iconBorder}`, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+    <div style={{
+      background: 'var(--panel)', border: '1px solid var(--border)',
+      borderRadius: 16, padding: '22px 24px 20px',
+      boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+    }}>
+      <div style={{
+        width: 40, height: 40, background: iconBg, border: `1px solid ${iconBorder}`,
+        borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: 18,
+      }}>
         <Icon name={icon} color={iconColor} size={18} />
       </div>
-      <div style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.text2, marginBottom: 10 }}>{label}</div>
-      <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.04em', color: C.text1, lineHeight: 1, marginBottom: 12 }}>{value}</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontFamily: C.mono, fontSize: 11, fontWeight: 700, color: iconColor }}>{change}</span>
-        <span style={{ fontSize: 12, color: C.text3 }}>vs. mes anterior</span>
+      <div style={{
+        fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.16em',
+        textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 8,
+      }}>{label}</div>
+      <div style={{
+        fontSize: 40, fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 6,
+        color: loading ? 'var(--border-2)' : 'var(--text-1)',
+      }}>
+        {loading ? '—' : value}
       </div>
+      {sublabel && (
+        <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{sublabel}</div>
+      )}
     </div>
   )
 }
 
-function OppRow({ icon, iconBg, iconBorder, iconColor, title, desc, isLast }) {
+function AppointmentRow({ turno, isLast }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 14, padding: '13px 0',
+      borderBottom: isLast ? 'none' : '1px solid var(--border)',
+    }}>
+      <div style={{ width: 52, flexShrink: 0, textAlign: 'center' }}>
+        <div style={{
+          fontFamily: 'var(--mono)', fontSize: 13, fontWeight: 700,
+          color: 'var(--text-1)', letterSpacing: '-0.02em', lineHeight: 1.1,
+        }}>
+          {turno.hora ? turno.hora.slice(0, 5) : '—'}
+        </div>
+        <div style={{
+          fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--text-3)',
+          letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: 2,
+        }}>
+          {formatDate(turno.fecha)}
+        </div>
+      </div>
+      <div style={{ width: 1, height: 32, background: 'var(--border)', flexShrink: 0 }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontSize: 13, fontWeight: 600, color: 'var(--text-1)', letterSpacing: '-0.01em',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {turno.cliente_nombre || 'Cliente sin nombre'}
+        </div>
+        <div style={{
+          fontSize: 11, color: 'var(--text-3)', marginTop: 2,
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {turno.servicio_nombre || 'Servicio no especificado'}
+        </div>
+      </div>
+      <StatusBadge estado={turno.estado} />
+    </div>
+  )
+}
+
+function ActionRow({ icon, iconColor, iconBg, iconBorder, title, desc, href, isLast }) {
+  const router = useRouter()
   const [hover, setHover] = useState(false)
   return (
     <div
+      onClick={() => router.push(href)}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 0', borderBottom: isLast ? 'none' : `1px solid ${C.border}`, transition: 'opacity 0.12s', opacity: hover ? 0.85 : 1 }}>
-      <div style={{ width: 44, height: 44, borderRadius: 12, background: iconBg, border: `1px solid ${iconBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <Icon name={icon} color={iconColor} size={18} />
+      style={{
+        display: 'flex', alignItems: 'center', gap: 14, padding: '13px 0',
+        borderBottom: isLast ? 'none' : '1px solid var(--border)',
+        cursor: 'pointer', opacity: hover ? 0.8 : 1, transition: 'opacity 0.12s',
+      }}>
+      <div style={{
+        width: 40, height: 40, borderRadius: 11, flexShrink: 0,
+        background: iconBg, border: `1px solid ${iconBorder}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Icon name={icon} color={iconColor} size={17} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 700, fontSize: 13, color: C.text1, marginBottom: 3, letterSpacing: '-0.01em' }}>{title}</div>
-        <div style={{ fontSize: 12, color: C.text3, lineHeight: 1.45 }}>{desc}</div>
+        <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-1)', marginBottom: 2, letterSpacing: '-0.01em' }}>
+          {title}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.5 }}>{desc}</div>
       </div>
-      <button style={{ background: 'none', border: `1px solid ${C.border2}`, borderRadius: 8, padding: '5px 13px', color: C.text2, fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
-        Resolver
-      </button>
-      <Icon name="chevron" color={C.text3} size={14} />
+      <Icon name="chevron" color="var(--text-3)" size={14} />
     </div>
   )
 }
 
 export default function Dashboard() {
   const router = useRouter()
-  const [user, setUser] = useState(null)
+  const [user, setUser]             = useState(null)
   const [authChecked, setAuthChecked] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  const [waStatus, setWaStatus] = useState('checking')
+  const [waStatus, setWaStatus]     = useState('checking')
+
+  const [turnosMes, setTurnosMes]           = useState(null)
+  const [proximosTurnos, setProximosTurnos] = useState(null)
+  const [contactosTotal, setContactosTotal] = useState(null)
+  const [turnosList, setTurnosList]         = useState(null)
+  const [acciones, setAcciones]             = useState(null)
 
   useEffect(() => {
-    setMounted(true)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.push(AUTH_REDIRECT); return }
       setUser(session.user)
@@ -190,184 +184,337 @@ export default function Dashboard() {
     return () => clearInterval(t)
   }, [authChecked])
 
+  useEffect(() => {
+    if (!user) return
+    loadData(user.id)
+  }, [user])
+
+  async function loadData(uid) {
+    const today  = new Date()
+    const todayStr = today.toISOString().split('T')[0]
+    const y = today.getFullYear(), mo = today.getMonth()
+    const startMonth = new Date(y, mo, 1).toISOString().split('T')[0]
+    const endMonth   = new Date(y, mo + 1, 0).toISOString().split('T')[0]
+
+    try {
+      const [
+        { count: mesCount },
+        { count: contactCount },
+        { count: proxCount },
+        { data: list },
+        { count: pendCount },
+        { count: dispCount },
+        { count: servCount },
+      ] = await Promise.all([
+        supabase.from('turnos').select('*', { count: 'exact', head: true })
+          .eq('user_id', uid).gte('fecha', startMonth).lte('fecha', endMonth).neq('estado', 'cancelado'),
+        supabase.from('contactos').select('*', { count: 'exact', head: true })
+          .eq('user_id', uid),
+        supabase.from('turnos').select('*', { count: 'exact', head: true })
+          .eq('user_id', uid).gte('fecha', todayStr).neq('estado', 'cancelado'),
+        supabase.from('turnos').select('id, fecha, hora, cliente_nombre, servicio_nombre, estado')
+          .eq('user_id', uid).gte('fecha', todayStr).neq('estado', 'cancelado')
+          .order('fecha', { ascending: true }).order('hora', { ascending: true }).limit(6),
+        supabase.from('turnos').select('*', { count: 'exact', head: true })
+          .eq('user_id', uid).eq('estado', 'pendiente').gte('fecha', todayStr),
+        supabase.from('disponibilidad').select('*', { count: 'exact', head: true })
+          .eq('user_id', uid).eq('activo', true),
+        supabase.from('servicios').select('*', { count: 'exact', head: true })
+          .eq('user_id', uid),
+      ])
+
+      setTurnosMes(mesCount ?? 0)
+      setContactosTotal(contactCount ?? 0)
+      setProximosTurnos(proxCount ?? 0)
+      setTurnosList(list ?? [])
+
+      const acts = []
+      if (!dispCount) acts.push({
+        icon: 'clock',
+        iconColor: 'var(--green)',
+        iconBg: 'var(--green-dim)',
+        iconBorder: 'var(--green-border)',
+        title: 'Configurá tu disponibilidad',
+        desc: 'Sin horarios activos tu agente no puede gestionar turnos',
+        href: '/agenda',
+      })
+      if (!servCount) acts.push({
+        icon: 'settings',
+        iconColor: '#EA580C',
+        iconBg: 'rgba(234,88,12,0.08)',
+        iconBorder: 'rgba(234,88,12,0.2)',
+        title: 'Cargá tus servicios',
+        desc: 'Tu agente necesita tus servicios para cotizar y agendar',
+        href: '/agenda',
+      })
+      if (pendCount > 0) acts.push({
+        icon: 'alert',
+        iconColor: '#D97706',
+        iconBg: 'rgba(217,119,6,0.08)',
+        iconBorder: 'rgba(217,119,6,0.2)',
+        title: `${pendCount} turno${pendCount > 1 ? 's' : ''} sin confirmar`,
+        desc: 'Revisá los turnos pendientes de atención en Reservas',
+        href: '/reservas',
+      })
+      setAcciones(acts)
+    } catch (e) {
+      console.error('Dashboard data error:', e)
+      setTurnosMes(0)
+      setContactosTotal(0)
+      setProximosTurnos(0)
+      setTurnosList([])
+      setAcciones([])
+    }
+  }
+
   if (!authChecked) return (
-    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg }}>
-      <div style={{ fontFamily: C.mono, fontSize: 11, color: C.text3, letterSpacing: '0.15em' }}>Cargando...</div>
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+      <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.15em' }}>Cargando...</div>
     </div>
   )
 
   const today = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
-  const todayCap = today.charAt(0).toUpperCase() + today.slice(1)
-  const firstName = user?.user_metadata?.name?.split(' ')[0]
-    || user?.email?.split('@')[0]
-    || 'equipo'
-
+  const todayCap  = today.charAt(0).toUpperCase() + today.slice(1)
+  const firstName = user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'equipo'
+  const mesLabel  = new Date().toLocaleDateString('es-AR', { month: 'long' })
   const isConnected = waStatus === 'connected'
+  const dataLoading = turnosMes === null
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: C.bg, fontFamily: C.sans }}>
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', fontFamily: 'var(--sans)' }}>
       <Sidebar />
       <main style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ padding: '36px 40px 48px', maxWidth: 1240 }}>
+        <div style={{ padding: '36px 40px 56px', maxWidth: 1200 }}>
 
-          {/* TOP ROW */}
-          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', marginBottom: 32 }}>
+          {/* ── TOP ROW ─────────────────────────────────────── */}
+          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', marginBottom: 36 }}>
+
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.text3, marginBottom: 10 }}>
+              <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 10 }}>
                 Panel principal
               </div>
-              <h1 style={{ margin: '0 0 8px', fontSize: 34, fontWeight: 800, letterSpacing: '-0.035em', color: C.text1, lineHeight: 1.1 }}>
+              <h1 style={{ margin: '0 0 8px', fontSize: 34, fontWeight: 800, letterSpacing: '-0.035em', color: 'var(--text-1)', lineHeight: 1.1 }}>
                 ¡Hola, {firstName}! 👋
               </h1>
-              <p style={{ margin: 0, fontSize: 14, color: C.text3 }}>{todayCap}</p>
+              <p style={{ margin: 0, fontSize: 14, color: 'var(--text-3)' }}>{todayCap}</p>
             </div>
 
-            <div style={{ width: 272, flexShrink: 0, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: '20px 20px 16px' }}>
+            {/* WhatsApp card */}
+            <div style={{
+              width: 272, flexShrink: 0,
+              background: 'var(--panel)', border: '1px solid var(--border)',
+              borderRadius: 16, padding: '20px 20px 16px',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+            }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: C.text1 }}>
-                  {isConnected ? 'WhatsApp activo' : 'Conecta tu WhatsApp'}
+                <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text-1)' }}>
+                  {isConnected ? 'WhatsApp activo' : 'Conectá tu WhatsApp'}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                   <div style={{
                     width: 7, height: 7, borderRadius: '50%',
-                    background: waStatus === 'checking' ? C.text3 : isConnected ? '#22c55e' : '#ef4444',
-                    boxShadow: isConnected ? '0 0 7px rgba(34,197,94,0.6)' : 'none',
+                    background: waStatus === 'checking' ? 'var(--text-3)' : isConnected ? '#16A34A' : '#DC2626',
+                    boxShadow: isConnected ? '0 0 7px rgba(22,163,74,0.5)' : 'none',
                     transition: 'background 0.3s',
                   }} />
-                  <span style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.text3 }}>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-3)' }}>
                     {waStatus === 'checking' ? 'verificando' : isConnected ? 'conectado' : 'no conectado'}
                   </span>
                 </div>
               </div>
-              <p style={{ margin: '0 0 14px', fontSize: 12, color: C.text3, lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 14px', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.55 }}>
                 {isConnected
                   ? 'Tu agente está activo y respondiendo mensajes automáticamente.'
                   : 'Escaneá el QR con tu teléfono para activar el agente.'}
               </p>
+
               {!isConnected && (
-                <div style={{ background: C.elevated, border: `1px dashed ${C.border2}`, borderRadius: 10, height: 88, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 14 }}>
+                <div style={{
+                  background: 'var(--elevated)', border: '1px dashed var(--border-2)',
+                  borderRadius: 10, height: 88, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 14,
+                }}>
                   <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                    <rect x="2"  y="2"  width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
-                    <rect x="4"  y="4"  width="6"  height="6"  fill={C.text3} rx="0.5"/>
-                    <rect x="16" y="2"  width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
-                    <rect x="18" y="4"  width="6"  height="6"  fill={C.text3} rx="0.5"/>
-                    <rect x="2"  y="16" width="10" height="10" rx="1" stroke={C.text3} strokeWidth="1.5"/>
-                    <rect x="4"  y="18" width="6"  height="6"  fill={C.text3} rx="0.5"/>
-                    <rect x="16" y="16" width="4"  height="4"  fill={C.text3} rx="0.5"/>
-                    <rect x="22" y="16" width="4"  height="4"  fill={C.text3} rx="0.5"/>
-                    <rect x="16" y="22" width="4"  height="4"  fill={C.text3} rx="0.5"/>
-                    <rect x="22" y="22" width="4"  height="4"  fill={C.text3} rx="0.5"/>
+                    <rect x="2"  y="2"  width="10" height="10" rx="1" stroke="var(--text-3)" strokeWidth="1.5"/>
+                    <rect x="4"  y="4"  width="6"  height="6"  fill="var(--text-3)" rx="0.5"/>
+                    <rect x="16" y="2"  width="10" height="10" rx="1" stroke="var(--text-3)" strokeWidth="1.5"/>
+                    <rect x="18" y="4"  width="6"  height="6"  fill="var(--text-3)" rx="0.5"/>
+                    <rect x="2"  y="16" width="10" height="10" rx="1" stroke="var(--text-3)" strokeWidth="1.5"/>
+                    <rect x="4"  y="18" width="6"  height="6"  fill="var(--text-3)" rx="0.5"/>
+                    <rect x="16" y="16" width="4"  height="4"  fill="var(--text-3)" rx="0.5"/>
+                    <rect x="22" y="16" width="4"  height="4"  fill="var(--text-3)" rx="0.5"/>
+                    <rect x="16" y="22" width="4"  height="4"  fill="var(--text-3)" rx="0.5"/>
+                    <rect x="22" y="22" width="4"  height="4"  fill="var(--text-3)" rx="0.5"/>
                   </svg>
-                  <span style={{ fontFamily: C.mono, fontSize: 9, color: C.text3, letterSpacing: '0.1em', textTransform: 'uppercase' }}>QR en conversaciones</span>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--text-3)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                    QR en conversaciones
+                  </span>
                 </div>
               )}
+
               {isConnected && (
-                <div style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: 10, padding: '10px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.5)' }} />
-                  <span style={{ fontFamily: C.mono, fontSize: 10, color: '#22c55e', letterSpacing: '0.08em' }}>AGENTE ACTIVO</span>
+                <div style={{
+                  background: 'rgba(22,163,74,0.06)', border: '1px solid rgba(22,163,74,0.18)',
+                  borderRadius: 10, padding: '10px 14px', marginBottom: 14,
+                  display: 'flex', alignItems: 'center', gap: 8,
+                }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#16A34A', boxShadow: '0 0 6px rgba(22,163,74,0.4)' }} />
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: '#16A34A', letterSpacing: '0.08em' }}>
+                    AGENTE ACTIVO
+                  </span>
                 </div>
               )}
+
               <button
                 onClick={() => router.push('/conversaciones')}
-                style={{ width: '100%', background: 'rgba(160,255,121,0.07)', border: '1px solid rgba(160,255,121,0.18)', borderRadius: 9, padding: '8px 0', color: C.green, fontSize: 12, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>
+                style={{
+                  width: '100%', background: 'var(--green-dim)', border: '1px solid var(--green-border)',
+                  borderRadius: 9, padding: '9px 0',
+                  color: 'var(--green)', fontSize: 12, fontWeight: 600,
+                  fontFamily: 'inherit', cursor: 'pointer',
+                }}>
                 {isConnected ? 'Ver conversaciones →' : 'Conectar ahora →'}
               </button>
             </div>
           </div>
 
-          {/* METRICS */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
-            {METRICS.map(m => <MetricCard key={m.label} {...m} />)}
+          {/* ── METRIC CARDS ────────────────────────────────── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
+            <StatCard
+              label={`Turnos en ${mesLabel}`}
+              value={turnosMes}
+              loading={dataLoading}
+              icon="calendar"
+              iconColor="var(--green)"
+              iconBg="var(--green-dim)"
+              iconBorder="var(--green-border)"
+              sublabel="Confirmados y pendientes del mes"
+            />
+            <StatCard
+              label="Próximos turnos"
+              value={proximosTurnos}
+              loading={dataLoading}
+              icon="clock"
+              iconColor="#2563EB"
+              iconBg="rgba(37,99,235,0.08)"
+              iconBorder="rgba(37,99,235,0.18)"
+              sublabel="Desde hoy en adelante"
+            />
+            <StatCard
+              label="Contactos"
+              value={contactosTotal}
+              loading={dataLoading}
+              icon="person"
+              iconColor="#7C3AED"
+              iconBg="rgba(124,58,237,0.08)"
+              iconBorder="rgba(124,58,237,0.18)"
+              sublabel="En tu base de datos"
+            />
           </div>
 
-          {/* CONTENT ROW */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16, marginBottom: 24 }}>
+          {/* ── CONTENT ROW ─────────────────────────────────── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 344px', gap: 16 }}>
 
-            <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: '24px 24px 10px' }}>
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.text3, marginBottom: 6 }}>Accionables</div>
-                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: C.text1 }}>
-                  Oportunidades para tu negocio
-                </h2>
-              </div>
-              {OPPS.map((o, i) => (
-                <OppRow key={i} {...o} isLast={i === OPPS.length - 1} />
-              ))}
-            </div>
-
-            <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: 24 }}>
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontFamily: C.mono, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.text3, marginBottom: 6 }}>Distribución</div>
-                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: C.text1 }}>
-                  Consultas por tipo
-                </h2>
-              </div>
-
-              {mounted ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <PieChart width={176} height={176}>
-                      <Pie
-                        data={DONUT}
-                        cx={88} cy={88}
-                        innerRadius={56} outerRadius={80}
-                        paddingAngle={2}
-                        dataKey="value"
-                        startAngle={90} endAngle={-270}
-                        strokeWidth={0}
-                      >
-                        {DONUT.map((e, i) => <Cell key={i} fill={e.color} stroke="none" />)}
-                      </Pie>
-                    </PieChart>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
-                      <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.05em', color: C.text1, lineHeight: 1 }}>42</div>
-                      <div style={{ fontFamily: C.mono, fontSize: 9, color: C.text3, letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>Total</div>
-                    </div>
+            {/* Próximas citas */}
+            <div style={{
+              background: 'var(--panel)', border: '1px solid var(--border)',
+              borderRadius: 16, padding: '24px 24px 14px',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 6 }}>
+                    Próximas citas
                   </div>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 11 }}>
-                    {DONUT.map(d => (
-                      <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
-                        <span style={{ fontSize: 13, color: C.text2, flex: 1 }}>{d.name}</span>
-                        <span style={{ fontFamily: C.mono, fontSize: 11, fontWeight: 600, color: C.text3 }}>{d.value}%</span>
-                      </div>
-                    ))}
+                  <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-1)' }}>
+                    Turnos agendados
+                  </h2>
+                </div>
+                <button
+                  onClick={() => router.push('/reservas')}
+                  style={{
+                    background: 'none', border: '1px solid var(--border-2)',
+                    borderRadius: 8, padding: '6px 12px',
+                    color: 'var(--text-2)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer',
+                  }}>
+                  Ver todos →
+                </button>
+              </div>
+
+              {turnosList === null ? (
+                <div style={{ padding: '32px 0', textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--text-3)', letterSpacing: '0.12em' }}>
+                    Cargando...
+                  </div>
+                </div>
+              ) : turnosList.length === 0 ? (
+                <div style={{ padding: '40px 0', textAlign: 'center' }}>
+                  <div style={{
+                    width: 44, height: 44, background: 'var(--elevated)', borderRadius: 12,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px',
+                  }}>
+                    <Icon name="calendar" color="var(--text-3)" size={18} />
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>
+                    Sin turnos próximos
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
+                    Los turnos que gestione tu agente aparecerán acá
                   </div>
                 </div>
               ) : (
-                <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontFamily: C.mono, fontSize: 10, color: C.text3, letterSpacing: '0.12em' }}>Cargando...</span>
-                </div>
+                turnosList.map((t, i) => (
+                  <AppointmentRow key={t.id} turno={t} isLast={i === turnosList.length - 1} />
+                ))
               )}
             </div>
-          </div>
 
-          {/* BOTTOM BANNER */}
-          <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderLeft: '4px solid var(--green)', borderRadius: 16, padding: '20px 28px 20px 24px', display: 'flex', alignItems: 'center', gap: 18 }}>
-            <div style={{ width: 46, height: 46, borderRadius: 13, background: 'var(--green-dim)', border: '1px solid var(--green-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 17V3" stroke="var(--green)" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M4 9l6-6 6 6" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, letterSpacing: '-0.01em', color: C.text1, marginBottom: 4 }}>
-                ¡Buen trabajo esta semana!
+            {/* Acciones pendientes */}
+            <div style={{
+              background: 'var(--panel)', border: '1px solid var(--border)',
+              borderRadius: 16, padding: '24px 24px 14px',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+            }}>
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 6 }}>
+                  Pendiente
+                </div>
+                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-1)' }}>
+                  Acciones requeridas
+                </h2>
               </div>
-              <div style={{ fontSize: 13, color: C.text2, lineHeight: 1.5 }}>
-                Tu agente IA resolvió el{' '}
-                <strong style={{ color: C.green, fontWeight: 700 }}>91%</strong>
-                {' '}de las consultas sin intervención. Seguís mejorando cada semana.
-              </div>
-            </div>
-            <button
-              style={{ background: 'none', border: '1px solid rgba(160,255,121,0.4)', borderRadius: 10, padding: '9px 20px', color: C.green, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(160,255,121,0.06)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-              Ver más insights
-            </button>
-          </div>
 
+              {acciones === null ? (
+                <div style={{ padding: '32px 0', textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--text-3)', letterSpacing: '0.12em' }}>
+                    Cargando...
+                  </div>
+                </div>
+              ) : acciones.length === 0 ? (
+                <div style={{ padding: '40px 0', textAlign: 'center' }}>
+                  <div style={{
+                    width: 44, height: 44,
+                    background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.2)',
+                    borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 12px',
+                  }}>
+                    <Icon name="check" color="#16A34A" size={18} />
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>
+                    Todo está al día
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
+                    No hay acciones pendientes por ahora
+                  </div>
+                </div>
+              ) : (
+                acciones.map((a, i) => (
+                  <ActionRow key={i} {...a} isLast={i === acciones.length - 1} />
+                ))
+              )}
+            </div>
+
+          </div>
         </div>
       </main>
     </div>

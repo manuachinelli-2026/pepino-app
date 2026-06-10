@@ -25,8 +25,7 @@ function NavIcon({ name, size = 14 }) {
     logout:   <path d="M9 2h3a1 1 0 011 1v8a1 1 0 01-1 1H9M6 10l3-3-3-3M9 7H1" {...p}/>,
     card:     <><rect x="1" y="3" width="12" height="8" rx="1" {...p}/><path d="M1 7h12" {...p}/></>,
     person:   <><circle cx="7" cy="5" r="3" {...p}/><path d="M1 13a6 6 0 0112 0" {...p}/></>,
-    sun:      <><circle cx="7" cy="7" r="3" {...p}/><path d="M7 1v2M7 11v2M1 7h2M11 7h2M2.9 2.9l1.4 1.4M9.7 9.7l1.4 1.4M2.9 11.1l1.4-1.4M9.7 4.3l1.4-1.4" {...p}/></>,
-    moon:     <path d="M11 7A5 5 0 116 2a4 4 0 005 5z" {...p}/>,
+    settings: <><circle cx="7" cy="7" r="2.5" {...p}/><path d="M7 1v1.5M7 10.5V12M1 7h1.5M10.5 7H12M2.9 2.9l1.1 1.1M8 8l1.1 1.1M2.9 11.1l1.1-1.1M8 6l1.1-1.1" {...p}/></>,
   }
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
@@ -68,57 +67,18 @@ function SectionLabel({ children }) {
   )
 }
 
-function ThemeToggle({ theme, onToggle }) {
-  const isLight = theme === 'light'
-  return (
-    <div
-      onClick={onToggle}
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '8px 12px', borderRadius: 8, cursor: 'pointer',
-        color: 'var(--text-2)', fontSize: 13,
-        transition: 'background 0.12s',
-      }}
-      onMouseEnter={e => e.currentTarget.style.background = 'var(--elevated)'}
-      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-        <NavIcon name={isLight ? 'sun' : 'moon'} size={13} />
-        <span>{isLight ? 'Modo claro' : 'Modo oscuro'}</span>
-      </div>
-      {/* Toggle pill */}
-      <div style={{
-        width: 32, height: 18, borderRadius: 99,
-        background: isLight ? 'var(--green)' : 'var(--elevated)',
-        border: '1px solid var(--border-2)',
-        position: 'relative', transition: 'background 0.2s',
-        flexShrink: 0,
-      }}>
-        <div style={{
-          width: 12, height: 12, borderRadius: '50%',
-          background: isLight ? 'var(--bg)' : 'var(--text-3)',
-          position: 'absolute', top: 2,
-          left: isLight ? 16 : 2,
-          transition: 'left 0.2s, background 0.2s',
-        }} />
-      </div>
-    </div>
-  )
-}
 
 export default function Sidebar() {
   const pathname  = usePathname()
   const router    = useRouter()
   const [user, setUser]         = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [theme, setTheme]       = useState('light')
   const menuRef = useRef(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
     })
-    localStorage.removeItem('pepino-theme')
   }, [])
 
   // Cerrar al click afuera
@@ -132,12 +92,6 @@ export default function Sidebar() {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [menuOpen])
-
-  const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    document.documentElement.setAttribute('data-theme', next)
-  }
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -229,10 +183,6 @@ export default function Sidebar() {
                 {item.label}
               </div>
             ))}
-
-            <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
-
-            <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
             <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
 
