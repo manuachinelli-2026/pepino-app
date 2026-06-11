@@ -190,9 +190,9 @@ export default function Dashboard() {
   }, [router])
 
   useEffect(() => {
-    if (!authChecked) return
+    if (!user) return
     const check = () => {
-      fetch('/api/status')
+      fetch(`/api/status?user_id=${user.id}`)
         .then(r => r.json())
         .then(d => setWaStatus(d.state === 'open' ? 'connected' : 'disconnected'))
         .catch(() => setWaStatus('disconnected'))
@@ -200,7 +200,7 @@ export default function Dashboard() {
     check()
     const t = setInterval(check, 12000)
     return () => clearInterval(t)
-  }, [authChecked])
+  }, [user])
 
   useEffect(() => {
     if (!user) return

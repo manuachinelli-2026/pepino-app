@@ -534,6 +534,7 @@ function ContactDrawer({ contact, customCols, customVals, onSaveCustomVal, onClo
 export default function ContactosPage() {
   const router = useRouter()
   const [authChecked, setAuthChecked] = useState(false)
+  const [userId, setUserId]           = useState(null)
   const [evContacts, setEvContacts]   = useState([])
   const [chats, setChats]             = useState([])
   const [reservas, setReservas]       = useState([])
@@ -610,16 +611,18 @@ export default function ContactosPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.push('/login'); return }
+      setUserId(session.user.id)
       setAuthChecked(true)
     })
   }, [router])
 
-  const loadAll = useCallback(async () => {
+  const loadAll = useCallback(async (uid) => {
+    if (!uid) return
     setLoading(true)
     const [evRes, chatsRes, resRes, extrasRes] = await Promise.allSettled([
-      fetch('/api/contacts').then(r => r.json()),
-      fetch('/api/chats').then(r => r.json()),
-      supabase.from('turnos').select('*').order('fecha', { ascending: false }),
+      fetch(`/api/contacts?user_id=${uid}`).then(r => r.json()),
+      fetch(`/api/chats?user_id=${uid}`).then(r => r.json()),
+      supabase.from('turnos').select('*').eq('user_id', uid).order('fecha', { ascending: false }),
       supabase.from('contactos').select('*'),
     ])
     if (evRes.status === 'fulfilled')    setEvContacts(Array.isArray(evRes.value) ? evRes.value : [])
@@ -633,7 +636,7 @@ export default function ContactosPage() {
     setLoading(false)
   }, [])
 
-  useEffect(() => { if (authChecked) loadAll() }, [authChecked, loadAll])
+  useEffect(() => { if (authChecked && userId) loadAll(userId) }, [authChecked, userId, loadAll])
 
   const contacts = useMemo(() => {
     const chatMap = {}
@@ -918,7 +921,7 @@ export default function ContactosPage() {
 
       {/* Import modal */}
       {showImport && (
-        <ImportModal onClose={() => setShowImport(false)} onImport={() => { loadAll(); setShowImport(false) }} />
+        <ImportModal onClose={() => setShowImport(false)} onImport={() => { loadAll(userId); setShowImport(false) }} />
       )}
     </div>
   )

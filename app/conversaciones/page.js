@@ -259,6 +259,7 @@ function QRModal({ onClose }) {
 export default function ConversacionesPage() {
   const router = useRouter()
   const [authChecked, setAuthChecked]   = useState(false)
+  const [userId, setUserId]             = useState(null)
   const [status, setStatus]             = useState({ connected: false, state: 'loading' })
   const [rawChats, setRawChats]         = useState([])
   const [selectedChat, setSelectedChat] = useState(null)
@@ -278,6 +279,7 @@ export default function ConversacionesPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.push(AUTH_REDIRECT); return }
+      setUserId(session.user.id)
       setAuthChecked(true)
     })
     const saved = localStorage.getItem('pepino-ai-agent')
@@ -285,34 +287,34 @@ export default function ConversacionesPage() {
   }, [router])
 
   useEffect(() => {
-    if (!authChecked) return
+    if (!authChecked || !userId) return
     const poll = async () => {
-      try { const r = await fetch('/api/status'); setStatus(await r.json()) } catch {}
+      try { const r = await fetch(`/api/status?user_id=${userId}`); setStatus(await r.json()) } catch {}
     }
     poll()
     const t = setInterval(poll, 6000)
     return () => clearInterval(t)
-  }, [authChecked])
+  }, [authChecked, userId])
 
   useEffect(() => {
-    if (!status.connected) { setRawChats([]); return }
+    if (!status.connected || !userId) { setRawChats([]); return }
     const load = async () => {
-      try { const r = await fetch('/api/chats'); setRawChats(await r.json()) } catch {}
+      try { const r = await fetch(`/api/chats?user_id=${userId}`); setRawChats(await r.json()) } catch {}
     }
     load()
     const t = setInterval(load, 10000)
     return () => clearInterval(t)
-  }, [status.connected])
+  }, [status.connected, userId])
 
   // Fetch messages for all JIDs of selected chat
   const loadMessages = useCallback(async (allJids) => {
-    if (!allJids?.length) return
+    if (!allJids?.length || !userId) return
     try {
       const params = allJids.map(j => `jid=${encodeURIComponent(j)}`).join('&')
-      const r = await fetch(`/api/messages?${params}`)
+      const r = await fetch(`/api/messages?${params}&user_id=${userId}`)
       setMessages(await r.json())
     } catch {}
-  }, [])
+  }, [userId])
 
   useEffect(() => {
     if (!selectedChat) return
@@ -328,7 +330,8 @@ export default function ConversacionesPage() {
   useEffect(() => {
     setProfilePic(null)
     if (!selectedChat) return
-    fetch(`/api/profile-pic?number=${encodeURIComponent(selectedChat.number)}`)
+    if (!userId) return
+    fetch(`/api/profile-pic?number=${encodeURIComponent(selectedChat.number)}&user_id=${userId}`)
       .then(r => r.json())
       .then(d => { if (d.url) setProfilePic(d.url) })
       .catch(() => {})
@@ -355,7 +358,7 @@ export default function ConversacionesPage() {
       await fetch('/api/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jid: selectedChat.remoteJid, text }),
+        body: JSON.stringify({ jid: selectedChat.remoteJid, text, user_id: userId }),
       })
       setTimeout(() => loadMessages(selectedChat.allJids), 800)
     } catch {}

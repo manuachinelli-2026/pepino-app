@@ -23,7 +23,7 @@ const AGENTS = [
     ],
     price: '95 €',
     priceNote: 'al mes',
-    active: true,  // el usuario ya lo tiene contratado
+    active: false,
     color: '#A0FF79',
   },
   {

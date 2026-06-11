@@ -1,14 +1,28 @@
+import { createClient } from '@supabase/supabase-js'
+
+const sb = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
+
 export async function GET(request) {
   const url = new URL(request.url)
-  // Accept either a single jid or multiple (jid can appear multiple times)
-  const jids = url.searchParams.getAll('jid')
+  const jids    = url.searchParams.getAll('jid')
+  const user_id = url.searchParams.get('user_id')
   if (!jids.length) return Response.json([])
 
-  const base = `${process.env.EVOLUTION_URL}/chat/findMessages/${process.env.EVOLUTION_INSTANCE}`
-  const headers = { apikey: process.env.EVOLUTION_KEY, 'Content-Type': 'application/json' }
-
   try {
-    // For each JID, fetch both directions
+    const { data: inst } = await sb
+      .from('whatsapp_instances')
+      .select('instance_name')
+      .eq('user_id', user_id)
+      .single()
+
+    if (!inst?.instance_name) return Response.json([])
+
+    const base    = `${process.env.EVOLUTION_URL}/chat/findMessages/${inst.instance_name}`
+    const headers = { apikey: process.env.EVOLUTION_KEY, 'Content-Type': 'application/json' }
+
     const fetches = jids.flatMap(jid => [
       fetch(base, {
         method: 'POST', headers, cache: 'no-store',
@@ -22,10 +36,8 @@ export async function GET(request) {
 
     const responses = await Promise.all(fetches)
     const bodies    = await Promise.all(responses.map(r => r.json()))
+    const all       = bodies.flatMap(d => Array.isArray(d) ? d : (d?.messages?.records ?? []))
 
-    const all = bodies.flatMap(d => Array.isArray(d) ? d : (d?.messages?.records ?? []))
-
-    // Deduplicate by key.id, sort ascending
     const seen = new Set()
     const deduped = all
       .filter(m => {
