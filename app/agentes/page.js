@@ -211,11 +211,17 @@ function AgentCard({ agent, expanded, onToggle }) {
 export default function AgentesPage() {
   const router = useRouter()
   const [authChecked, setAuthChecked] = useState(false)
-  const [expanded, setExpanded]       = useState('paco')
+  const [activeIds, setActiveIds]     = useState([])
+  const [expanded, setExpanded]       = useState(null)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.push('/login'); return }
+      const { data } = await supabase
+        .from('user_agents')
+        .select('agent_id')
+        .eq('user_id', session.user.id)
+      setActiveIds((data || []).map(r => r.agent_id))
       setAuthChecked(true)
     })
   }, [router])
@@ -226,8 +232,9 @@ export default function AgentesPage() {
     </div>
   )
 
-  const active  = AGENTS.filter(a => a.active)
-  const upsell  = AGENTS.filter(a => !a.active)
+  const agents  = AGENTS.map(a => ({ ...a, active: activeIds.includes(a.id) }))
+  const active  = agents.filter(a => a.active)
+  const upsell  = agents.filter(a => !a.active)
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', fontFamily: 'var(--sans)' }}>
@@ -243,17 +250,19 @@ export default function AgentesPage() {
         </div>
 
         {/* Active agents */}
-        <section style={{ marginBottom: 36 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#A0FF79', boxShadow: '0 0 6px #A0FF79' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-3)' }}>Activos · {active.length} agente{active.length !== 1 ? 's' : ''}</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {active.map(a => (
-              <AgentCard key={a.id} agent={a} expanded={expanded === a.id} onToggle={() => setExpanded(expanded === a.id ? null : a.id)} />
-            ))}
-          </div>
-        </section>
+        {active.length > 0 && (
+          <section style={{ marginBottom: 36 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#A0FF79', boxShadow: '0 0 6px #A0FF79' }} />
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-3)' }}>Activos · {active.length} agente{active.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {active.map(a => (
+                <AgentCard key={a.id} agent={a} expanded={expanded === a.id} onToggle={() => setExpanded(expanded === a.id ? null : a.id)} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Upsell */}
         <section>
