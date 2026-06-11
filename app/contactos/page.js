@@ -639,14 +639,28 @@ export default function ContactosPage() {
   useEffect(() => { if (authChecked && userId) loadAll(userId) }, [authChecked, userId, loadAll])
 
   const contacts = useMemo(() => {
+    // For LID chats, resolve to the real phone number via remoteJidAlt
+    function resolvePhone(chat) {
+      const jid = chat.remoteJid || ''
+      if (jid.endsWith('@lid')) {
+        const alt = chat.lastMessage?.key?.remoteJidAlt
+        return alt ? normalizePhone(alt) : null
+      }
+      return normalizePhone(jid)
+    }
+
     const chatMap = {}
     for (const chat of chats) {
       const jid = chat.remoteJid || ''
       if (jid.includes('@broadcast') || jid.includes('status') || jid === '0@s.whatsapp.net') continue
-      const phone = normalizePhone(jid)
+      const phone = resolvePhone(chat)
       if (!phone) continue
       const ts = chat.lastMessage?.messageTimestamp || 0
-      if (!chatMap[phone] || ts > chatMap[phone].ts) chatMap[phone] = { ts, jid }
+      // Prefer @s.whatsapp.net JID over @lid for storage
+      const storeJid = jid.endsWith('@lid')
+        ? (normalizePhone(chat.lastMessage?.key?.remoteJidAlt || '') + '@s.whatsapp.net')
+        : jid
+      if (!chatMap[phone] || ts > chatMap[phone].ts) chatMap[phone] = { ts, jid: storeJid }
     }
     const resMap = {}
     for (const r of reservas) {
@@ -658,7 +672,9 @@ export default function ContactosPage() {
     const phoneSet = new Set()
     const nameMap  = {}
     for (const c of evContacts) {
-      const phone = normalizePhone(c.remoteJid || c.id || '')
+      const jid = c.remoteJid || c.id || ''
+      if (jid.endsWith('@lid')) continue  // LID duplicates — skip, the phone entry covers them
+      const phone = normalizePhone(jid)
       if (!phone) continue
       phoneSet.add(phone)
       const name = c.pushName || c.verifiedName || c.name || ''
@@ -667,7 +683,7 @@ export default function ContactosPage() {
     for (const chat of chats) {
       const jid = chat.remoteJid || ''
       if (jid.includes('@broadcast') || jid.includes('status') || jid === '0@s.whatsapp.net') continue
-      const phone = normalizePhone(jid)
+      const phone = resolvePhone(chat)
       if (!phone) continue
       phoneSet.add(phone)
       if (!nameMap[phone]) {
